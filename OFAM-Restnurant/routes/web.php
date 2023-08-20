@@ -16,3 +16,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+//การสร้าง Rount
+Route::get('/about', function () {
+    echo 'สวัดดี';
+});
+
+// {name} สัมพันธ์กัน $name โดยถ้าจะเพิ่ม {name} ต้องไม่ซ้ำกับที่มือยู่แล้ว
+Route::get('/login', function () {
+    return view('login');
+});

@@ -9,7 +9,7 @@ class employee extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'employees_id'; // Set the primary key field name
+    // protected $primaryKey = 'employees_id'; // Set the primary key field name
 
     protected $fillable = [
         'employees_id',
@@ -27,13 +27,13 @@ class employee extends Model
         'management_lavel',
     ];
 
-    // Optionally, you can set the default values for some fields
-    protected $attributes = [
-        'management_lavel' => 'employee', // Default value for management_lavel column
-    ];
+    // // Optionally, you can set the default values for some fields
+    // protected $attributes = [
+    //     'management_lavel' => 'employee', // Default value for management_lavel column
+    // ];
 
-    protected $casts = [
-        'postal_code' => 'integer',
-        'employees_phone' => 'integer',
-    ];
+    // protected $casts = [
+    //     'postal_code' => 'integer',
+    //     'employees_phone' => 'integer',
+    // ];
 }

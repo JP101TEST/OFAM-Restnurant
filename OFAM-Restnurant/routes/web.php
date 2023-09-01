@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\login;
+use App\Http\Controllers\TableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,4 +40,10 @@ Route::post('/management/logout', [login::class, 'logOut'])->name('management.lo
 // Route::match(['get', 'post'],'/management', [login::class,'getRequest'])
 // ->name('management.getRequest')
 // ->middleware('checkUser');
+Route::post('/update/table/status/{table_id}',  [TableController::class, 'updateStatus'])->name('update.table.status');
+Route::get('/update/table/status/{table_id}', [TableController::class, 'getStatus'])->name('get.table.status');
+Route::get('/get-updated-tables', [TableController::class, 'getUpdatedTables'])->name('get.updated.tables');
+Route::get('/get-updated-tables/{table_inpt_id},{table_select_inpt}', [TableController::class, 'getUpdatedTablesInput'])->name('get.updated.tables.input');
+
+
 

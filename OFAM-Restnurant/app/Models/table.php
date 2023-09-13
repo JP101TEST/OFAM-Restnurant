@@ -12,7 +12,9 @@ class table extends Model
     //protected $primaryKey = 'table_id';
     protected $fillable = [
         'table_id',
-        'status_tables'
+        'table_name',
+        'tables_password',
+        'tables_status'
     ];
-    public $incrementing = false;
+    //public $incrementing = false;
 }

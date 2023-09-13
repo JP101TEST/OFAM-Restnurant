@@ -14,9 +14,11 @@ return new class extends Migration
     public function up()
     {
         Schema::create('tables', function (Blueprint $table) {
-            $table->string('table_id')->length(255);
-            $table->enum('status_tables', ['ยกเลิกการใช้งาน','ว่าง', 'ไม่ว่าง']);
-            $table->timestamps();
+            $table->integer('table_id')->length(255);
+            $table->string('table_name')->length(255);
+            $table->integer('tables_password')->length(6);
+            $table->enum('tables_status', ['ยกเลิกการใช้งาน','ว่าง', 'ไม่ว่าง']);
+
             //Define primary key
             $table->primary('table_id');
         });

@@ -9,3 +9,67 @@ h2.intro {
 .ddy {
     background-color: rgb(167, 167, 167);
 }
+
+.bg-green {
+    background-color: #5cc118;
+    /* Change this to your desired background color */
+    color: white;
+}
+
+.custom-nav-link {
+    background-color: #82ddf0;
+    /* Change this to your desired background color */
+    color: white;
+    /* Optionally, change the text color to make it readable */
+    cursor: pointer;
+    margin-top: 5px;
+    margin-left: 5px;
+    border-radius: 10px;
+}
+
+.custom-nav-link-active {
+    background-color: #0dcaf0;
+    /* Change this to your desired background color */
+    color: white;
+    /* Optionally, change the text color to make it readable */
+    cursor: pointer;
+    margin-top: 5px;
+    margin-left: 5px;
+    border-radius: 10px;
+}
+
+.custom-nav-link:hover {
+    background-color: #0dcaf0;
+    /* Change this to your desired background color */
+    color: white;
+    /* Optionally, change the text color to make it readable */
+}
+
+.custom-nav-link-active:hover {
+    background-color: #0dcaf0;
+    /* Change this to your desired background color */
+    color: white;
+    /* Optionally, change the text color to make it readable */
+}
+
+.custom-nav-link-h {
+    background-color: #0dcaf0;
+    /* Change this to your desired background color */
+    color: white;
+    /* Optionally, change the text color to make it readable */
+    cursor: pointer;
+    margin-top: 5px;
+    margin-left: 2px;
+    border-radius: 10px;
+}
+
+.icon-size
+{
+    height: 25px;
+    filter: brightness(0) invert(1);
+}
+
+.spade-bar{
+    margin-left: 10px;
+    margin-right: 10px;
+}

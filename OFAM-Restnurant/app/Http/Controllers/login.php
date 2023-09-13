@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class login extends Controller
 {
 
-/*
+    /*
     public function index()
     {
 
@@ -27,7 +27,7 @@ class login extends Controller
         $errorUser = null;
         $errorPassword = null;
 
-/*
+        /*
         $filteredEmployees = Employee::where('employees_id', $user)
         ->where('employees_password', $password)
         ->get();
@@ -62,11 +62,17 @@ class login extends Controller
             session(['errorUser' => $errorUser]);
             //return view('management.management_oder_food_list', ['employees' => $employees]);
             session()->forget(['errorUser', 'errorPassword', 'user.ole', 'password.ole']);
+    /*
+            print(session('User') . '<br>');
+            $user = session('User')[0];
+            $employeesId = $user['employees_id'];
+            print("employees_id : " . $employeesId . '<br>');
+            print("employees_id : " .session('User')[0]['employees_id'] . '<br>');
+    */
             return view('management.management_oder_food_list');
         } else {
             return redirect()->route('login');
         }
-
     }
 
     public function getRequest()

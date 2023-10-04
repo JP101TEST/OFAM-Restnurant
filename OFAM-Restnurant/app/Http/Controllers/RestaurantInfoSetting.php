@@ -61,7 +61,7 @@ class RestaurantInfoSetting extends Controller
                 // Print a message if the file extension is not allowed
                 //print("รูป  \"$originalFileName\" ไม่รองรับสกุลไฟล์นี้ (รองรับเฉพาะ jpg และ png)<br>");
                 $changeImageStatus = false;
-                $errorRestaurantImage = 'ไม่รองรับสกุลไฟล์นี้ (รองรับเฉพาะ jpg และ png)';
+                $errorRestaurantImage = 'ไม่รองรับสกุลไฟล์นี้ (รองรับเฉพาะ jpg, png, webp, gif, bmp, svg, jpeg, ico, tiff)';
                 session(['errorImage' => $errorRestaurantImage]);
             }
         } else {

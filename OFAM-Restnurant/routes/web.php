@@ -6,6 +6,8 @@ use App\Http\Controllers\TableController;
 use App\Http\Controllers\ManagementAdminRoute;
 use App\Http\Controllers\RestaurantInfoSetting;
 use App\Http\Controllers\TableAdminController;
+use App\Http\Controllers\FoodCategoryAdminController;
+use App\Http\Controllers\FoodMenuAdminController;
 use App\Http\Controllers\UserController;
 
 /*
@@ -45,10 +47,16 @@ Route::get('/management-admin/table/get-all-tables', [TableAdminController::clas
 Route::get('/management-admin/table/{table_inpt_id},{table_select_inpt}', [TableAdminController::class, 'getUpdatedTables'])->name('management.admin.table.get.some.tables');
 
 Route::get('/management-admin/food', [ManagementAdminRoute::class, 'goFoodpageWithGet'])->name('management.admin.food');
-
+Route::get('/management-admin/food/category', [ManagementAdminRoute::class, 'goFoodCategorypageWithGet'])->name('management.admin.food.category');
+Route::post('/management-admin/food/category', [FoodCategoryAdminController::class, 'addCategory'])->name('management.admin.food.category.add.postData');
+Route::get('/management-admin/food/menu', [ManagementAdminRoute::class, 'goFoodMenupageWithGet'])->name('management.admin.food.menu');
+Route::post('/management-admin/food/menu', [FoodMenuAdminController::class, 'addMenu'])->name('management.admin.food.menu.add.postData');
+Route::get('/management-admin/food/menu/edit/MenuId={menu_id}', [ManagementAdminRoute::class, 'goFoodMenuEditpageWithGet'])->name('management.admin.food.menu.edit');
+Route::post('/management-admin/food/menu/edit/MenuId={menu_id}', [FoodMenuAdminController::class, 'editMenu'])->name('management.admin.food.menu.edit.postData');
 
 Route::post('/order/Table={table_name}', [UserController::class, 'goHomepageWithGet'])->name('user.main');
 Route::get('/order/Table={table_name}', [UserController::class, 'goHomepageWithGet'])->name('user.main');
+
 
 
 Route::get('/generate-random-number', [TableController::class, 'generateRandomNumber']);

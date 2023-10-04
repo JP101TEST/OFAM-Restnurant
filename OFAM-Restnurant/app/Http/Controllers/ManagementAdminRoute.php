@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+
 class ManagementAdminRoute extends Controller
 {
     //
@@ -59,6 +60,41 @@ class ManagementAdminRoute extends Controller
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_food');
+        }
+    }
+
+    public function goFoodCategorypageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif(session('User')[0]['employees_id'] != 'admin'){
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_food_category_add');
+        }
+    }
+
+    public function goFoodMenupageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif(session('User')[0]['employees_id'] != 'admin'){
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_food_menu_add');
+        }
+    }
+
+    public function goFoodMenuEditpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif(session('User')[0]['employees_id'] != 'admin'){
+            return view('management/management_oder_food_list');
+        } else {
+
+
+            return view('management/admin_page/management_food_menu_edit');
         }
     }
 }

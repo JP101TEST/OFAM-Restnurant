@@ -200,19 +200,5 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
         </div>
     </div>
 </body>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    /*function inputAndOutput(inputId, outputId) {
-        const selectedValue = $('#' + inputId).val();
-        $('#' + outputId).text(selectedValue);
-        return selectedValue; // Return the selected value
-    }
-
-    setInterval(function() {
-        const selectedValue1 = inputAndOutput('formGroupExampleInput', 'formGroupExampleOutput');
-        const selectedValue2 = inputAndOutput('formGroupExampleInput2', 'formGroupExampleOutput2');
-        const selectedValue3 = inputAndOutput('formGroupExampleInput3', 'formGroupExampleOutput3');
-    }, 3000) // 10 seconds*/
-</script>
 
 </html>

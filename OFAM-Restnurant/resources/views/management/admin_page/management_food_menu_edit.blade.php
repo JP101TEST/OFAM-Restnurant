@@ -8,17 +8,11 @@ $menuCategorys = menu_category::all();
 $menu_id = Route::current()->parameter('menu_id');
 $menu = DB::table('menus')
     ->where('menu_id', $menu_id)->get();
-//print($menu . '<br>');
-//print('menu_id:' . $menu[0]->menu_id . '<br>');
-$price_history = DB::table('price_histories')
-->where('menu_id', $menu_id)
-->where('date_end', null)->get();
 
-$price_history_all = DB::table('price_histories')
-->where('menu_id', $menu_id)
-->orderBy('date_start', 'asc')
-->get();
-//print('price_history:' . $price_history[0]->price . '<br>');
+$price_history = DB::table('price_histories')
+    ->where('menu_id', $menu_id)
+    ->where('date_end', null)->get();
+
 ?>
 
 <!DOCTYPE html>
@@ -190,6 +184,13 @@ $price_history_all = DB::table('price_histories')
         .error-input {
             border: 1px solid red;
         }
+
+        .menu-size-edit {
+            height: 300px;
+            width: 300px;
+            justify-self: center;
+
+        }
     </style>
 </head>
 
@@ -230,10 +231,20 @@ $price_history_all = DB::table('price_histories')
     </nav>
     <div class="container">
         <br>
+        <div class="col-lg-12 d-flex justify-content-between">
+            <div class="mb-1 row">
+                <ul class="col navbar-nav me-auto width-150">
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
+                </ul>
+            </div>
+        </div>
         <div class="row mt-3">
             <div class="col-lg-12">
                 <br>
                 <h4 class="text-center">แก้ไขข้อมูลอาหาร</h4>
+                <div class="mb-3 container text-center">
+                <img class="menu-size-edit" src="{{ asset('images/menu/' . $menu[0]->menu_image ) }}" alt=""><br>
+                </div>
                 <div class="mb-3 container">
                     <p>เพิ่ม:</p>
                 </div>
@@ -294,16 +305,14 @@ $price_history_all = DB::table('price_histories')
                                         <th>วันที่สิ้นสุด</th>
                                     </tr>
                                 </thead>
-                                <tbody id="table-body">
-                                    @foreach ($price_history_all as $price_history)
-                                    <tr>
-                                        <td>{{ $price_history->price }}</td>
-                                        <td>{{ $price_history->date_start }}</td>
-                                        <td>@if ($price_history->date_end != NULL) {{ $price_history->date_end }} @else - @endif</td>
-                                    </tr>
-                                    @endforeach
+                                <tbody id="table-price">
                                 </tbody><br>
+                                <br>
                             </table>
+                            <nav>
+                                <ul class="pagination justify-content-center" id="pagination">
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -312,5 +321,101 @@ $price_history_all = DB::table('price_histories')
     </div>
 </body>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        let currentPage = 1 // Track the current page
+        const itemsPerPage = 5 // Number of items to display per page
+
+        var id = <?php echo json_encode($menu_id); ?>;
+
+
+        function getAllpriceHistory(id) {
+            $.ajax({
+                type: 'GET',
+                url: '/management-admin/food/menu/edit/getPriceHistory/MenuId=' + id,
+                success: function(response) {
+                    // Assuming response.tables_status is an array of objects
+                    const totalPriceHistory = response.allPriceHistory.length
+                    const startIndex = (currentPage - 1) * itemsPerPage
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalPriceHistory);
+
+                    let tableData = response.allPriceHistory
+                        .slice(startIndex, endIndex)
+                        .map(price => {
+                            return `
+                            <tr>
+                        <td>${price.price}</td>
+                        <td>${price.date_start}</td>
+                        <td>${price.date_end || '-'}</td>
+                    </tr>`
+                        })
+
+                    $('#table-price').html(tableData.join('')) // Update the content
+
+                    const totalPages = Math.ceil(totalPriceHistory / itemsPerPage)
+                    $('#pagination').empty();
+                    generatePagination(totalPages)
+
+                },
+                error: function(error) {
+                    // Handle error if necessary
+                }
+            })
+        }
+
+        $(document).on('click', '.page-btn-all', function() {
+            currentPage = parseInt($(this).data('page'))
+            getAllpriceHistory(id);
+        })
+
+        function generatePagination(totalPages) {
+            if (totalPages > 1) {
+                $('#pagination').empty(); // Clear pagination links
+
+                // Calculate the range of pages to show
+                const numPagesToShow = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+                // Add the "Previous" page if not on the first page
+                if (currentPage > 1) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;</a></li>
+                        `);
+                }
+
+                // Add pages before the current page
+                for (let i = startPage; i < currentPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the current page
+                $('#pagination').append(`
+                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
+                        `);
+
+                // Add pages after the current page
+                for (let i = currentPage + 1; i <= endPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the "Next" page if not on the last page
+                if (currentPage < totalPages) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;</a></li>
+                        `);
+                }
+            }
+        }
+
+        console.log(id);
+        getAllpriceHistory(id);
+    })
+</script>
 
 </html>

@@ -5,6 +5,7 @@ use App\Models\restaurantInfo;
 $restaurantlogo = restaurantInfo::value('restaurant_logo');
 
 use App\Models\Menu; // Adjust the model namespace as needed
+use App\Models\menu_category; // Adjust the model namespace as needed
 use Illuminate\Support\Facades\DB;
 
 $menus = Menu::select([
@@ -43,6 +44,8 @@ WHERE
 ORDER BY
     `menu_id` ASC;
     */
+
+$menu_categories = menu_category::all();
 ?>
 
 <!DOCTYPE html>
@@ -155,6 +158,7 @@ ORDER BY
 
         .menu-size {
             height: 100px;
+            width: 100px;
 
         }
 
@@ -222,6 +226,12 @@ ORDER BY
             /* Change this to your desired background color */
             color: white;
         }
+
+        @media (max-width: 550px) {
+            body {
+                width: 550px;
+            }
+        }
     </style>
 </head>
 
@@ -276,6 +286,7 @@ ORDER BY
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.home')}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ข้อมูลร้าน</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">ข้อมูลโต๊ะ</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">ข้อมูลอาหาร</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">ข้อมูลโปรโมชั่น</a></li>
                 </ul>
             </div>
         </div>
@@ -314,28 +325,37 @@ ORDER BY
                 <div class="container">
                     <div class="row mt-3">
                         <div class="col-lg-12">
+                            <label for="selectSearch">หมวดหมู่</label>
+                            <select id="inputSelected" name="selectSearch">
+                                <option value="0">ทั้งหมด</option>
+                                @foreach ($menu_categories as $menu_categorie)
+                                <option value="{{ $menu_categorie->menu_category_id }}">{{ $menu_categorie->menu_category_name }}</option>
+                                @endforeach
+                                <!--<option value="name">ชื่อโต๊ะ</option>
+                                <option value="status">สถานะโต๊ะ</option>-->
+                            </select><br><br>
+                            <label for="inputSearch">ค้นหา</label>
+                            <input type="text" id="searchInput" name="inputSearch" placeholder="ชื่อเมนู"><br>
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
                                         <th>หมวดหมู่</th>
-                                        <th>ชื่อเมนู</th>
-                                        <th>รูป</th>
+                                        <th>เมนู</th>
                                         <th>สถานะ</th>
-                                        <th>ราคา</th>
                                         <th>แก้ไข</th>
                                         <!-- Add more table headers for other columns as needed -->
                                     </tr>
                                 </thead>
-                                <tbody id="table-body">
+
+                                <!--<tbody id="table-body">
                                     @foreach ($menus as $menu)
                                     <tr>
                                         <td>{{ $menu->menu_category_name }}</td>
-                                        <td>{{ $menu->menu_name }}</td>
-                                        <td class="text-center">
-                                            <img class="menu-size" src="{{ asset('images/menu/' . $menu->menu_image ) }}" alt="">
+                                        <td>ชื่อ:{{ $menu->menu_name }}<br>
+                                        <img class="menu-size" src="{{ asset('images/menu/' . $menu->menu_image ) }}" alt=""><br>
+                                        ราคา:{{ $menu->price }}
                                         </td>
                                         <td>{{ $menu->menu_status }}</td>
-                                        <td>{{ $menu->price }}</td>
                                         <td>
 
                                                 <ul class="container navbar-nav me-auto">
@@ -347,8 +367,15 @@ ORDER BY
                                         </td>
                                     </tr>
                                     @endforeach
-                                </tbody><br>
+                                </tbody>-->
+                                <tbody id="table-menu">
+                                </tbody>
+                                <br>
                             </table>
+                            <nav>
+                                <ul class="pagination justify-content-center" id="pagination">
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -358,5 +385,305 @@ ORDER BY
         </div>
     </div>
 </body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var inputSearchValue = null;
+    var selectedSearchValue = bindInputChange('inputSelected');
+
+    function bindInputChange(inputId) {
+        const selectedValue = $('#' + inputId).val();
+        return selectedValue; // Return the selected value
+    }
+
+    function changeMenuStatus(id, value) {
+        // You can use the 'value' parameter to determine which radio button was clicked.
+        /*console.log("id "+id);
+        if (value === 1) {
+            // Code to execute when the first radio button is clicked
+            console.log("ยกเลิกให้บริการ");
+        } else if (value === 2) {
+            // Code to execute when the second radio button is clicked
+            console.log("พร้อมให้บริการ");
+        } else if (value === 3) {
+            // Code to execute when the second radio button is clicked
+            console.log("หมด");
+        }*/
+        var confirmation = confirm('คุณต้องการเปลี่ยนสถานะเมนูใช่หรือไม่');
+        if (confirmation) {
+            $.ajax({
+                type: 'GET',
+                url: '/management-admin/food/menu_id=' + id + ',new_status=' + value,
+                success: function(response) {},
+                error: function(error) {}
+            });
+        }
+    }
+
+    $(document).ready(function() {
+        let currentPage = 1 // Track the current page
+        const itemsPerPage = 1 // Number of items to display per page
+
+
+
+
+        //get data from text search
+        $('#searchInput').on('keyup', function() {
+            inputValue = $(this).val();
+            if (/^\/+$/.test(inputValue)) {
+                inputSearchValue = 'null'; // Update inputSearchValue
+            } else {
+                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
+            }
+        });
+
+
+
+        function getAllMenu(selectedSearchValue) {
+            $.ajax({
+                type: 'GET',
+                url: '/management-admin/food/get-all-food,category=' + selectedSearchValue,
+                success: function(response) {
+                    // Assuming response.tables_status is an array of objects
+                    const totalMenu = response.allMenu.length
+                    if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
+                        currentPage = 1;
+                    }
+                    const startIndex = (currentPage - 1) * itemsPerPage
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
+
+                    let tableData = response.allMenu
+                        .slice(startIndex, endIndex)
+                        .map(menu => {
+                            return `
+                            <tr>
+                        <td>${menu.menu_category_name}</td>
+                        <td>ชื่อ:${menu.menu_name }<br>
+                            <img class="menu-size" src="/images/menu/${menu.menu_image}" alt=""><br>
+                            ราคา:${menu.price}
+                        </td>
+                        <td>
+                        <p ${menu.menu_status == 'ยกเลิกให้บริการ' ? 'class="bg-danger text-white" style="text-align: center;"' : menu.menu_status == 'พร้อมให้บริการ' ? 'class="bg-success text-white" style="text-align: center;"' : 'class="bg-dark text-white" style="text-align: center;"'} >${menu.menu_status}</p>
+                        <!--${menu.menu_status}--><br>
+                        <label>
+                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},1)">
+                        ยกเลิกให้บริการ
+                        </label><br>
+                        <label>
+                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},2)">
+                        พร้อมให้บริการ
+                        </label><br>
+                        <label>
+                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},3)">
+                        หมด
+                        </label></td>
+                        <td>
+                            <ul class="container navbar-nav me-auto">
+                                <ul class="container navbar-nav me-auto">
+                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/food/menu/edit/MenuId=${menu.menu_id}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไข</a></li>
+                                </ul>
+                            </ul>
+                        </td>
+                    </tr>`
+                        })
+
+                    $('#table-menu').html(tableData.join('')) // Update the content
+
+                    const totalPages = Math.ceil(totalMenu / itemsPerPage);
+
+                    $('#pagination').empty();
+                    generatePagination(totalPages)
+                },
+                error: function(error) {
+                    // Handle error if necessary
+                }
+            })
+        }
+
+        function getSearchFood(selectedSearchValue, inputSearchValue) {
+            $.ajax({
+                type: 'GET',
+                url: '/management-admin/food/get-all-food,category=' + selectedSearchValue + '/search=' + inputSearchValue,
+                success: function(response) {
+                    // Assuming response.tables_status is an array of objects
+                    const totalMenu = response.allMenu.length
+                    if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
+                        currentPage = 1;
+                    }
+                    const startIndex = (currentPage - 1) * itemsPerPage
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
+                    let tableData;
+                    if (totalMenu === 0) {
+                        tableData = `
+                        <tr>
+                            <td colspan="4">
+                                <p>No data</p>
+                            </td>
+                        </tr>`;
+                    } else {
+                        tableData = response.allMenu
+                            .slice(startIndex, endIndex)
+                            .map(menu => {
+                                return `
+                            <tr>
+                        <td>${menu.menu_category_name}</td>
+                        <td>ชื่อ:${menu.menu_name }<br>
+                            <img class="menu-size" src="/images/menu/${menu.menu_image}" alt=""><br>
+                            ราคา:${menu.price}
+                        </td>
+                        <td>
+                        <p ${menu.menu_status == 'ยกเลิกให้บริการ' ? 'class="bg-danger text-white" style="text-align: center;"' : menu.menu_status == 'พร้อมให้บริการ' ? 'class="bg-success text-white" style="text-align: center;"' : 'class="bg-dark text-white" style="text-align: center;"'} >${menu.menu_status}</p>
+                        <!--${menu.menu_status}--><br>
+                        <label>
+                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},1)">
+                        ยกเลิกให้บริการ
+                        </label><br>
+                        <label>
+                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},2)">
+                        พร้อมให้บริการ
+                        </label><br>
+                        <label>
+                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},3)">
+                        หมด
+                        </label></td>
+                        <td>
+                            <ul class="container navbar-nav me-auto">
+                                <ul class="container navbar-nav me-auto">
+                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/food/menu/edit/MenuId=${menu.menu_id}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไข</a></li>
+                                </ul>
+                            </ul>
+                        </td>
+                    </tr>`
+                            }).join('');
+                    }
+                    $('#table-menu').html(tableData) // Update the content
+
+                    const totalPages = Math.ceil(totalMenu / itemsPerPage);
+                    $('#pagination').empty();
+                    generatePaginationSearch(totalPages)
+
+                },
+                error: function(error) {
+                    // Handle error if necessary
+                }
+            })
+        }
+
+        $(document).on('click', '.page-btn-all', function() {
+            currentPage = parseInt($(this).data('page'))
+            getAllMenu(selectedSearchValue);
+        })
+
+        $(document).on('click', '.page-btn-Search', function() {
+            currentPage = parseInt($(this).data('page'))
+            getSearchFood(selectedSearchValue, inputSearchValue);
+        })
+
+        function generatePagination(totalPages) {
+            if (totalPages > 1) {
+                $('#pagination').empty(); // Clear pagination links
+
+                // Calculate the range of pages to show
+                const numPagesToShow = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+                // Add the "Previous" page if not on the first page
+                if (currentPage > 1) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
+                        `);
+                }
+
+                // Add pages before the current page
+                for (let i = startPage; i < currentPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the current page
+                $('#pagination').append(`
+                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
+                        `);
+
+                // Add pages after the current page
+                for (let i = currentPage + 1; i <= endPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the "Next" page if not on the last page
+                if (currentPage < totalPages) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
+                        `);
+                }
+            }
+        }
+
+        function generatePaginationSearch(totalPages) {
+            if (totalPages > 1) {
+                $('#pagination').empty(); // Clear pagination links
+
+                // Calculate the range of pages to show
+                const numPagesToShow = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+                // Add the "Previous" page if not on the first page
+                if (currentPage > 1) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-Search" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
+                        `);
+                }
+
+                // Add pages before the current page
+                for (let i = startPage; i < currentPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the current page
+                $('#pagination').append(`
+                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
+                        `);
+
+                // Add pages after the current page
+                for (let i = currentPage + 1; i <= endPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the "Next" page if not on the last page
+                if (currentPage < totalPages) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-Search" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
+                        `);
+                }
+            }
+        }
+
+
+
+        getAllMenu(selectedSearchValue);
+
+        //loop call read data 3sec
+        setInterval(function() {
+            selectedSearchValue = bindInputChange('inputSelected');
+            /*console.log("selectedSearchValue: " + selectedSearchValue);
+            console.log("inputSearchValue: " + inputSearchValue);*/
+            if (inputSearchValue == null || inputSearchValue === '') {
+                getAllMenu(selectedSearchValue);
+            } else {
+                getSearchFood(selectedSearchValue, inputSearchValue);
+            }
+        }, 1000)
+
+
+    })
+</script>
 
 </html>

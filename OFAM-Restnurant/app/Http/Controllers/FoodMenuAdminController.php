@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
+
+
+use App\Models\Menu;
+
 class FoodMenuAdminController extends Controller
 {
     //
@@ -272,5 +276,111 @@ class FoodMenuAdminController extends Controller
         ]);
         return redirect()->route('management.admin.food');
         */
+    }
+
+    public function getPriceHistory()
+    {
+        $menu_id = Route::current()->parameter('menu_id');
+        $allPriceHistory = DB::table('price_histories')
+            ->where('menu_id', $menu_id)
+            ->orderBy('date_start', 'desc')
+            ->get();
+
+        return response()->json(['allPriceHistory' => $allPriceHistory]);
+    }
+
+    public function getAllFood()
+    {
+        $category = Route::current()->parameter('category');
+        if ($category == 0) {
+            $menu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        } else {
+            $menu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->where('menus.menu_category_id', $category)
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        }
+        return response()->json(['allMenu' => $menu]);
+    }
+
+    public function getFoodFromSearch()
+    {
+        $category = Route::current()->parameter('category');
+        $search = Route::current()->parameter('search');
+        if ($category == 0) {
+            $menu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->where('menus.menu_name', 'LIKE', "%$search%")
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        } else {
+            $menu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->where('menus.menu_name', 'LIKE', "%$search%")
+                ->where('menus.menu_category_id', $category)
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        }
+
+        return response()->json(['allMenu' => $menu]);
+    }
+
+    public function changeMenuStatus()
+    {
+        $menu_id = Route::current()->parameter('menu_id');
+        $status = Route::current()->parameter('new_status');
+        DB::table('menus')
+            ->where('menu_id', $menu_id)
+            ->update([
+                'menu_status' => $status,
+            ]);
     }
 }

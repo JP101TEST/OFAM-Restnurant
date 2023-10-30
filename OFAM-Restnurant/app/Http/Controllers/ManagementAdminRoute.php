@@ -12,7 +12,7 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        } elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_home');
@@ -23,9 +23,9 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        } elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
-        }else {
+        } else {
             return view('management/admin_page/management_home_edit');
         }
     }
@@ -34,7 +34,7 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        }elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_table');
@@ -45,7 +45,7 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        }elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_table_add');
@@ -56,7 +56,7 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        } elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_food');
@@ -67,7 +67,7 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        } elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_food_category_add');
@@ -78,7 +78,7 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        } elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_food_menu_add');
@@ -89,12 +89,47 @@ class ManagementAdminRoute extends Controller
     {
         if (empty(session('User'))) {
             return redirect()->route('login');
-        } elseif(session('User')[0]['employees_id'] != 'admin'){
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
             return view('management/management_oder_food_list');
         } else {
 
 
             return view('management/admin_page/management_food_menu_edit');
+        }
+    }
+
+    public function goPromotionpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+
+
+            return view('management/admin_page/management_promotion');
+        }
+    }
+
+    public function goPromotionAddpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_promotion_add');
+        }
+    }
+
+    public function goPromotionEditpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_promotion_edit');
         }
     }
 }

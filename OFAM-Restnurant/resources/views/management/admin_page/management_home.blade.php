@@ -37,6 +37,7 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
             border-radius: 10px;
         }
 
+
         .custom-nav-link-yellow {
             background-color: #c0b17f;
             /* Change this to your desired background color */
@@ -100,6 +101,10 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
             border-radius: 10px;
         }
 
+        .bg-active:hover {
+            background-color: #82ddf0;
+        }
+
         .icon-size {
             height: 25px;
             filter: brightness(0) invert(1);
@@ -108,6 +113,15 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
         .icon-size-no-brightness {
             height: 25px;
             margin-right: 10px;
+        }
+
+        .menu-size {
+            height: 100px;
+
+        }
+
+        .icon-brightness {
+            filter: brightness(0) invert(1);
         }
 
         .spade-bar {
@@ -141,6 +155,35 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
         .high-150 {
             height: 150px;
         }
+
+        .pad {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .bg-green {
+            background-color: #99c07f;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-green:hover {
+            background-color: #5cc118;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-yellow {
+            background-color: #c0b17f;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-yellow:hover {
+            background-color: #e9bc26;
+            /* Change this to your desired background color */
+            color: white;
+        }
     </style>
 </head>
 
@@ -149,50 +192,53 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
         <div class="container-fluid">
             <img class="icon-size spade-bar" src="{{ asset('images/store.png') }}">
             <a class="navbar-brand">ชื่อร้าน</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_test" aria-controls="navbarSupportedContent_test" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_test" aria-controls="navbarSupportedContent_test" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent_test">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="#!">About</a></li>
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="#!">Contact</a></li>
+                <ul class="container navbar-nav me-auto">
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">About</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">Contact</a></li>
                     @if(session('User')[0]->management_lavel == 'admin')
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center active" aria-current="page" href="{{ route('management.admin.home')}}">จัดการร้าน</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active text-center active" aria-current="page" href="{{ route('management.admin.home')}}">จัดการร้าน</a></li>
                     @endif
                     <li>
                         <div class="vl"></div>
                     </li>
                 </ul>
-                <div class="navbar-nav">
-                    <div class="d-flex">
-                        <ul class="navbar-nav me-auto">
-                            <li class="nav-item">
-                                <p class="nav-link active">{{ session('User')[0]->employees_id }} {{ session('User')[0]->employees_password }}</p>
-                            </li>
-                            <li class="nav-item">
-                                <form action="{{ route('management.logout') }}" method="post">
-                                    @csrf <!-- Add CSRF token for Laravel form -->
-                                    <button type="submit" class="btn nav-link">
-                                        <img src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="Logout">
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                <ul class="container justify-content-end navbar-nav me-auto">
+                    <li class="text-center"><a class="nav-link custom-nav-link-active justify-content-center align-content-center">ชื่อผู้ใช้{{ session('User')[0]->employees_id }} {{ session('User')[0]->employees_password }}</a></li>
+                    <li class="nav-item text-center"><a>
+                            <form action="{{ route('management.logout') }}" method="post">
+                                @csrf <!-- Add CSRF token for Laravel form -->
+                                <button type="submit" class="nav-link custom-nav-link-active bg-active justify-content-center w-100">
+                                    <img class="icon-brightness" src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="Logout">
+                                </button>
+                            </form>
+                        </a></li>
+                </ul>
             </div>
         </div>
     </nav>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_sub" aria-controls="navbarSupportedContent_sub" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler w-100" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_sub" aria-controls="navbarSupportedContent_sub" aria-expanded="false" aria-label="Toggle navigation">
+                <div class="d-flex flex-row justify-content-between align-items-center">
+                    <div class="align-items-center">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/document.png') }}" alt="">
+                        <!--เมนูการจัดการ-->
+                    </div>
+                    <span class="navbar-toggler-icon"></span>
+                </div>
             </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent_sub">
+            <div class="collapse navbar-collapse pad" id="navbarSupportedContent_sub">
                 <ul class="container navbar-nav me-auto">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ข้อมูลร้าน</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center" href="{{ route('management.admin.home')}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ข้อมูลร้าน</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">ข้อมูลโต๊ะ</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">ข้อมูลอาหาร</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">ข้อมูลโปรโมชั่น</a></li>
                 </ul>
             </div>
         </div>

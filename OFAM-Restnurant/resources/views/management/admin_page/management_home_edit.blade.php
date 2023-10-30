@@ -36,8 +36,31 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             border-radius: 10px;
         }
 
+
+        .custom-nav-link-yellow {
+            background-color: #c0b17f;
+            /* Change this to your desired background color */
+            color: white;
+            /* Optionally, change the text color to make it readable */
+            cursor: pointer;
+            margin-top: 5px;
+            margin-left: 5px;
+            border-radius: 10px;
+        }
+
         .custom-nav-link-active {
             background-color: #0dcaf0;
+            /* Change this to your desired background color */
+            color: white;
+            /* Optionally, change the text color to make it readable */
+            cursor: pointer;
+            margin-top: 5px;
+            margin-left: 5px;
+            border-radius: 10px;
+        }
+
+        .custom-nav-link-yellow-active {
+            background-color: #e9bc26;
             /* Change this to your desired background color */
             color: white;
             /* Optionally, change the text color to make it readable */
@@ -54,6 +77,18 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             /* Optionally, change the text color to make it readable */
         }
 
+        .custom-nav-link-active:hover {
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .custom-nav-link-yellow:hover {
+            background-color: #e9bc26;
+            /* Change this to your desired background color */
+            color: white;
+            /* Optionally, change the text color to make it readable */
+        }
+
         .custom-nav-link-h {
             background-color: #0dcaf0;
             /* Change this to your desired background color */
@@ -65,6 +100,10 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             border-radius: 10px;
         }
 
+        .bg-active:hover {
+            background-color: #82ddf0;
+        }
+
         .icon-size {
             height: 25px;
             filter: brightness(0) invert(1);
@@ -73,6 +112,15 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
         .icon-size-no-brightness {
             height: 25px;
             margin-right: 10px;
+        }
+
+        .menu-size {
+            height: 100px;
+
+        }
+
+        .icon-brightness {
+            filter: brightness(0) invert(1);
         }
 
         .spade-bar {
@@ -107,16 +155,33 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             height: 150px;
         }
 
-        .yellow-bg {
+        .pad {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .bg-green {
+            background-color: #99c07f;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-green:hover {
+            background-color: #5cc118;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-yellow {
             background-color: #c0b17f;
+            /* Change this to your desired background color */
+            color: white;
         }
 
-        .yellow-bg-active {
+        .bg-yellow:hover {
             background-color: #e9bc26;
-        }
-
-        .yellow-bg:hover {
-            background-color: #e9bc26;
+            /* Change this to your desired background color */
+            color: white;
         }
     </style>
 </head>
@@ -124,38 +189,34 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container-fluid">
-            <img class="icon-size spade-bar" src="{{ asset('images/store.png') }}" alt="">
+            <img class="icon-size spade-bar" src="{{ asset('images/store.png') }}">
             <a class="navbar-brand">ชื่อร้าน</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_test" aria-controls="navbarSupportedContent_test" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_test" aria-controls="navbarSupportedContent_test" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent_test">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="#!">About</a></li>
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="#!">Contact</a></li>
+                <ul class="container navbar-nav me-auto">
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">About</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">Contact</a></li>
                     @if(session('User')[0]->management_lavel == 'admin')
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center active" aria-current="page" href="{{ route('management.admin.home')}}">จัดการร้าน</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active text-center active" aria-current="page" href="{{ route('management.admin.home')}}">จัดการร้าน</a></li>
                     @endif
                     <li>
                         <div class="vl"></div>
                     </li>
                 </ul>
-                <div class="navbar-nav">
-                    <div class="d-flex">
-                        <ul class="navbar-nav me-auto">
-                            <li class="nav-item">
-                                <p class="nav-link active">{{ session('User')[0]->employees_id }} {{ session('User')[0]->employees_password }}</p>
-                            </li>
-                            <li class="nav-item">
-                                <form action="{{ route('management.logout') }}" method="post">
-                                    @csrf <!-- Add CSRF token for Laravel form -->
-                                    <button type="submit" class="btn nav-link">
-                                        <img src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="">
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                <ul class="container justify-content-end navbar-nav me-auto">
+                    <li class="text-center"><a class="nav-link custom-nav-link-active justify-content-center align-content-center">ชื่อผู้ใช้{{ session('User')[0]->employees_id }} {{ session('User')[0]->employees_password }}</a></li>
+                    <li class="nav-item text-center"><a>
+                            <form action="{{ route('management.logout') }}" method="post">
+                                @csrf <!-- Add CSRF token for Laravel form -->
+                                <button type="submit" class="nav-link custom-nav-link-active bg-active justify-content-center w-100">
+                                    <img class="icon-brightness" src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="Logout">
+                                </button>
+                            </form>
+                        </a></li>
+                </ul>
             </div>
         </div>
     </nav>

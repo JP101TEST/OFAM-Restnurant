@@ -1,11 +1,3 @@
-<?php
-
-use App\Models\restaurantInfo;
-
-$restaurantName = restaurantInfo::value('restaurant_name');
-$restaurantPhone = restaurantInfo::value('restaurant_phone');
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -23,6 +15,10 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
 
         .ddy {
             background-color: rgb(167, 167, 167);
+        }
+
+        .text_red {
+            color: red;
         }
 
         .custom-nav-link {
@@ -77,6 +73,11 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             /* Optionally, change the text color to make it readable */
         }
 
+        .custom-nav-link:disabled {
+            background-color: rgb(167, 167, 167);
+            color: white;
+        }
+
         .custom-nav-link-active:hover {
             /* Change this to your desired background color */
             color: white;
@@ -112,11 +113,6 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
         .icon-size-no-brightness {
             height: 25px;
             margin-right: 10px;
-        }
-
-        .menu-size {
-            height: 100px;
-
         }
 
         .icon-brightness {
@@ -172,22 +168,14 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             color: white;
         }
 
-        .bg-yellow {
-            background-color: #c0b17f;
-            /* Change this to your desired background color */
-            color: white;
-        }
-
-        .bg-yellow:hover {
-            background-color: #e9bc26;
-            /* Change this to your desired background color */
-            color: white;
+        .error-input {
+            border: 1px solid red;
         }
     </style>
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-info">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container-fluid">
             <img class="icon-size spade-bar" src="{{ asset('images/store.png') }}">
             <a class="navbar-brand">ชื่อร้าน</a>
@@ -215,7 +203,8 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
                                     <img class="icon-brightness" src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="Logout">
                                 </button>
                             </form>
-                        </a></li>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -225,32 +214,48 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
         <div class="col-lg-12 d-flex justify-content-between">
             <div class="mb-1 row">
                 <ul class="col navbar-nav me-auto width-150">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
                 </ul>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-lg-12">
                 <br>
-                <h4 class="text-center">เพิ่มโต๊ะ</h4>
+                <h4 class="text-center">เพิ่มรายการอาหาร</h4>
                 <div class="mb-3 container">
                     <p>เพิ่ม:</p>
                 </div>
-                <form method="post" action="{{ route('management.admin.table.add.postData') }}" enctype="multipart/form-data">
+                <form method="post" action="{{ route('management.admin.promotion.add.postData') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ชื่อโต๊ะ:</label>
-                        @if (session('errorTableName'))
-                        <p class="text-center text-light bg-danger">{{ session('errorTableName') }}</p>
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/discount.png') }}" alt="">
+                        <label for="formGroupExampleInput" class="form-label">ชื่อโปรโมชั่น:</label>
+                        @if (session('errorPromotionName'))
+                        <p class="text-center text-light bg-danger">{{ session('errorPromotionName') }}</p>
                         @endif
-                        <input type="text" class="form-control" id="formGroupExampleInput" name="tableName" placeholder="กรอกชื่อโต๊ะแนะนำให้ใช้ t-01,t-02,...,t-0n" @if (session('tableName.ole')) value="{{ session('tableName.ole') }} " @endif>
-                        <!--<p id="formGroupExampleOutput"></p>-->
+                        <input type="text" class="form-control error-input" id="formGroupExampleInput" name="promotionName" placeholder="กรอกชื่อโปรโมชั่น" oninput="checkInputs()">
                     </div>
-                    {{ session()->forget(['errorTableName','tableName.ole']) }}
+                    <div class="mb-3">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/percentage.png') }}" alt="">
+                        <label for="formGroupExampleInput" class="form-label">เปอร์เซ็นต์ส่วนลด:</label>
+                        <p class="text-center text-light bg-danger" id="errorPromotionPercentage" style="display: none;">{{ "ข้อมูลเป็นตัวเลขและ 0-100 เท่านั้น" }}</p>
+                        <input type="number" class="form-control error-input" id="formGroupExampleInput2" name="promotionPercentage" min="1" max="100" placeholder="กรอกชื่อเปอร์เซ็นต์ส่วนลด" oninput="checkInputs()">
+                    </div>
+                    <div class="mb-3">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/timetable.png') }}" alt="">
+                        <label for="formGroupExampleInput2" class="form-label">วันที่เริ่มโปรโมชั่น:</label>
+                        <input type="date" class="form-control error-input" id="formGroupExampleInput3" name="startDate" oninput="checkInputs()">
+                    </div>
+                    <div class="mb-3">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/timetable.png') }}" alt="">
+                        <label for="formGroupExampleInput2" class="form-label">วันที่สิ้นสุดโปรโมชั่น:<a class="text_red">(สามารถเว้นว่างได้กรณีที่ไม่ต้องการหยุดการใช้โปรโมชั่น)</a></label>
+                        <input type="date" class="form-control" id="formGroupExampleInput4" name="endDate" oninput="checkInputs()">
+                    </div>
+                    {{ session()->forget(['errorPromotionName','errorPromotionPercentage']) }}
                     <div class="col-lg-12 d-flex justify-content-between">
                         <div class="col navbar-nav me-auto width-150">
-                            <button type="submit" class="nav-link custom-nav-link justify-content-center" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');">
+                            <p id="errorMessage" class="text-danger">กรุณากรอกข้อมูลให้ครบ.</p>
+                            <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');" disabled>
                                 <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
                                 เพิ่ม
                             </button>
@@ -261,5 +266,55 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
         </div>
     </div>
 </body>
+<script>
+    function checkInputs() {
+        const promotionName = document.getElementById('formGroupExampleInput');
+        const promotionPercentage = document.getElementById('formGroupExampleInput2');
+        const errorElement = document.getElementById("errorPromotionPercentage");
+        const startDate = document.getElementById('formGroupExampleInput3');
+
+
+        const submitButton = document.getElementById('submitButton');
+
+        // Check if any input field is empty or the menuCategory is not selected
+        if (promotionName.value.trim() === '') {
+            promotionName.classList.add('error-input');
+        } else {
+            promotionName.classList.remove('error-input');
+        }
+
+        if (promotionPercentage.value.trim() === '') {
+            promotionPercentage.classList.add('error-input');
+        } else {
+            promotionPercentage.classList.remove('error-input');
+        }
+
+        if (startDate.value.trim() === '') {
+            startDate.classList.add('error-input');
+        } else {
+            startDate.classList.remove('error-input');
+        }
+
+        // Check if any input field is empty or the menuCategory is not selected
+        if (promotionName.value.trim() === '' || promotionPercentage.value.trim() === '' || startDate.value.trim() === '') {
+            submitButton.disabled = true;
+            errorMessage.style.display = 'block';
+        } else {
+            submitButton.disabled = false;
+            errorMessage.style.display = 'none';
+        }
+        // Check if the input value is outside the valid range
+        if (promotionPercentage.value < 1 || promotionPercentage.value > 100) {
+            submitButton.disabled = true;
+            errorMessage.style.display = 'block';
+            errorElement.style.display = "block"; // Show the error message
+        } else {
+            errorElement.style.display = "none"; // Hide the error message
+        }
+
+
+    }
+</script>
+
 
 </html>

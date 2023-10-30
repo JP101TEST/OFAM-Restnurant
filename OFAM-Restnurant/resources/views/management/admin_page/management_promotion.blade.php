@@ -2,8 +2,12 @@
 
 use App\Models\restaurantInfo;
 
-$restaurantName = restaurantInfo::value('restaurant_name');
-$restaurantPhone = restaurantInfo::value('restaurant_phone');
+$restaurantlogo = restaurantInfo::value('restaurant_logo');
+
+use App\Models\promotion; // Adjust the model namespace as needed
+use Illuminate\Support\Facades\DB;
+
+$promotions = promotion::orderBy('date_start', 'desc')->get();
 ?>
 
 <!DOCTYPE html>
@@ -187,7 +191,7 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-info">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container-fluid">
             <img class="icon-size spade-bar" src="{{ asset('images/store.png') }}">
             <a class="navbar-brand">ชื่อร้าน</a>
@@ -220,43 +224,108 @@ $restaurantPhone = restaurantInfo::value('restaurant_phone');
             </div>
         </div>
     </nav>
-    <div class="container">
-        <br>
-        <div class="col-lg-12 d-flex justify-content-between">
-            <div class="mb-1 row">
-                <ul class="col navbar-nav me-auto width-150">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand"></a>
+            <button class="navbar-toggler w-100" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_sub" aria-controls="navbarSupportedContent_sub" aria-expanded="false" aria-label="Toggle navigation">
+                <div class="d-flex flex-row justify-content-between align-items-center">
+                    <div class="align-items-center">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/discount.png') }}" alt="">
+                        <!--เมนูการจัดการ-->
+                    </div>
+                    <span class="navbar-toggler-icon"></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse pad" id="navbarSupportedContent_sub">
+                <ul class="container navbar-nav me-auto">
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.home')}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ข้อมูลร้าน</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">ข้อมูลโต๊ะ</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">ข้อมูลอาหาร</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">ข้อมูลโปรโมชั่น</a></li>
                 </ul>
             </div>
         </div>
+    </nav>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand"></a>
+            <button class="navbar-toggler w-100" type="button" data-bs-toggle="collapse" data-bs-target="#sub_add" aria-controls="sub_add" aria-expanded="false">
+                <div class="d-flex flex-row justify-content-between align-items-center">
+                    <div class="align-items-center">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
+                        <!--เมนูการจัดการ-->
+                    </div>
+                    <span class="navbar-toggler-icon"></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse pad" id="sub_add">
+                <ul class="container navbar-nav me-auto">
+                    <ul class="container navbar-nav me-auto">
+                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-green justify-content-center" href="{{ route('management.admin.promotion.add')}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">เพิ่มโปรโมชั่น</a></li>
+                    </ul>
+                    <!--
+                    <ul class="container justify-content-end navbar-nav me-auto">
+                        <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.home')}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ออก</a></li>
+                    </ul>-->
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
         <div class="row mt-3">
             <div class="col-lg-12">
+                <h4 class="text-center">จัดข้อมูลโปรโมชั่น</h4>
                 <br>
-                <h4 class="text-center">เพิ่มโต๊ะ</h4>
-                <div class="mb-3 container">
-                    <p>เพิ่ม:</p>
-                </div>
-                <form method="post" action="{{ route('management.admin.table.add.postData') }}" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ชื่อโต๊ะ:</label>
-                        @if (session('errorTableName'))
-                        <p class="text-center text-light bg-danger">{{ session('errorTableName') }}</p>
-                        @endif
-                        <input type="text" class="form-control" id="formGroupExampleInput" name="tableName" placeholder="กรอกชื่อโต๊ะแนะนำให้ใช้ t-01,t-02,...,t-0n" @if (session('tableName.ole')) value="{{ session('tableName.ole') }} " @endif>
-                        <!--<p id="formGroupExampleOutput"></p>-->
-                    </div>
-                    {{ session()->forget(['errorTableName','tableName.ole']) }}
-                    <div class="col-lg-12 d-flex justify-content-between">
-                        <div class="col navbar-nav me-auto width-150">
-                            <button type="submit" class="nav-link custom-nav-link justify-content-center" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');">
-                                <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
-                                เพิ่ม
-                            </button>
+                <div class="container">
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>โปรโมชั่น</th>
+                                        <th>ช่วงเวลาที่จัดโปรโมชั่น</th>
+
+                                        <!-- Add more table headers for other columns as needed -->
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    @foreach ($promotions as $promotion)
+                                    <tr>
+                                        <td>
+                                            ชื่อโปรโมชั่น:  {{ $promotion->promotion_name}}<br>
+                                            โค้ด:    {{ $promotion->promotion_code}}<br>
+                                            ส่วนลด:  {{ $promotion->discount}}%<br>
+                                            <ul class="container navbar-nav me-auto">
+                                                <ul class="container navbar-nav me-auto">
+                                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="{{ route('management.admin.promotion.edit', ['promotion_id' => $promotion->promotion_id])}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">แก้ไข</a></li>
+                                                </ul>
+                                            </ul>
+                                        </td>
+                                        <td>
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>วันที่เริ่ม</th>
+                                                        <th>วันที่สิ้นสุด</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>{{ $promotion->date_start}}</td>
+                                                        <td>{{ $promotion->date_end ? $promotion->date_end : '-'}}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody><br>
+                            </table>
                         </div>
                     </div>
-                </form>
+                </div>
+                <br><br><br>
+
             </div>
         </div>
     </div>

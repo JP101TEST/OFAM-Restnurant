@@ -37,6 +37,7 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
             border-radius: 10px;
         }
 
+
         .custom-nav-link-yellow {
             background-color: #c0b17f;
             /* Change this to your desired background color */
@@ -100,6 +101,10 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
             border-radius: 10px;
         }
 
+        .bg-active:hover {
+            background-color: #82ddf0;
+        }
+
         .icon-size {
             height: 25px;
             filter: brightness(0) invert(1);
@@ -108,6 +113,15 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
         .icon-size-no-brightness {
             height: 25px;
             margin-right: 10px;
+        }
+
+        .menu-size {
+            height: 100px;
+
+        }
+
+        .icon-brightness {
+            filter: brightness(0) invert(1);
         }
 
         .spade-bar {
@@ -141,6 +155,35 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
         .high-150 {
             height: 150px;
         }
+
+        .pad {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .bg-green {
+            background-color: #99c07f;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-green:hover {
+            background-color: #5cc118;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-yellow {
+            background-color: #c0b17f;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-yellow:hover {
+            background-color: #e9bc26;
+            /* Change this to your desired background color */
+            color: white;
+        }
     </style>
 </head>
 
@@ -148,18 +191,19 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container-fluid">
             <img class="icon-size spade-bar" src="{{ asset('images/store.png') }}">
-            <a class="navbar-brand">ชื่อร้าน</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_test" aria-controls="navbarSupportedContent_test" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <a class="navbar-brand">หน้าลูกค้า</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_test" aria-controls="navbarSupportedContent_test" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent_test">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="#!">About</a></li>
-                    <li class="nav-item"><a class="nav-link custom-nav-link-h width-90 text-center" href="#!">Contact</a></li>
+                <ul class="container navbar-nav me-auto">
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">About</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">Contact</a></li>
                     <li>
                         <div class="vl"></div>
                     </li>
                 </ul>
-
             </div>
         </div>
     </nav>

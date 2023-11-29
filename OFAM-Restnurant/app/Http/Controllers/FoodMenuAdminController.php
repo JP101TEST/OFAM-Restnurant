@@ -84,12 +84,13 @@ class FoodMenuAdminController extends Controller
             session(['errorMenuCategory' => $errorMenuCategory]);
         }
 
-
+        /*
         print('$errorMenuName:' . $errorMenuName . '<br>');
         print('$errorImage:' . $errorImage . '<br>');
         print('$originalFileName:' . $originalFileName . '<br>');
         print('$changeImageStatus:' . $changeImageStatus . '<br>');
         print('$menuNameDuplicate:' . $menuNameDuplicate . '<br>');
+*/
 
         if ($errorMenuName != null || $errorMenuCategory != null || $errorImage != null) {
             return redirect()->route('management.admin.food.menu');
@@ -151,9 +152,13 @@ class FoodMenuAdminController extends Controller
         $price_historyDatabase = DB::table('price_histories')
             ->where('menu_id', $menu_id)
             ->where('date_end', null)->get();
+        $menuName_duplicate_same_id = DB::table('menus')
+            ->where('menu_name', $menuName_New)
+            ->where('menu_id', '!=', $menu_id)
+            ->count();
         //ตรวจสอบชื่อซ้ำ
-        print('$menuName:' . $menuName_New . '$menuName_ole:' . $menuNameDatabase[0]->menu_name . '<br>');
-        print('$menuPrice:' . $menuPrice_New . '$menuPrice_ole:' . $price_historyDatabase[0]->price . '<br>');
+        /*print('$menuName:' . $menuName_New . '$menuName_ole:' . $menuNameDatabase[0]->menu_name . '<br>');
+        print('$menuPrice:' . $menuPrice_New . '$menuPrice_ole:' . $price_historyDatabase[0]->price . '<br>');*/
 
 
         // ตรวจสอบรูป
@@ -192,7 +197,12 @@ class FoodMenuAdminController extends Controller
         }
         print('---------------------------------------------<br>');
 
-        if ($errorImage != null) {
+        if ($menuName_duplicate_same_id > 0) {
+            $errorMenuName = 'ชื่อนี้มีการใช้งานแล้ว';
+            session(['errorMenuName' => $errorMenuName]);
+        }
+
+        if ($errorImage != null ||$menuName_duplicate_same_id > 0) {
             return redirect()->route('management.admin.food.menu.edit', ['menu_id' => $menu_id]);
         }
 

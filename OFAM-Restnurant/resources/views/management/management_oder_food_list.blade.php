@@ -24,7 +24,7 @@ $employees = Employee::all();
         }
 
         .custom-nav-link {
-            background-color: #82ddf0;
+            background-color: #67DBF1;
             /* Change this to your desired background color */
             color: white;
             /* Optionally, change the text color to make it readable */
@@ -105,6 +105,10 @@ $employees = Employee::all();
         .icon-size {
             height: 25px;
             filter: brightness(0) invert(1);
+        }
+
+        .icon-size-dark {
+            height: 25px;
         }
 
         .icon-size-no-brightness {
@@ -196,9 +200,7 @@ $employees = Employee::all();
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent_test">
                 <ul class="container navbar-nav me-auto">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">About</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">Contact</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
                     @if(session('User')[0]->management_lavel == 'admin')
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active text-center active" aria-current="page" href="{{ route('management.admin.home')}}">จัดการร้าน</a></li>
                     @endif
@@ -211,7 +213,7 @@ $employees = Employee::all();
                     <li class="nav-item text-center"><a>
                             <form action="{{ route('management.logout') }}" method="post">
                                 @csrf <!-- Add CSRF token for Laravel form -->
-                                <button type="submit" class="nav-link custom-nav-link-active bg-active justify-content-center w-100">
+                                <button type="submit" class="nav-link custom-nav-link-active bg-active justify-content-center w-100" title="ออกจากระบบ">
                                     <img class="icon-brightness" src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="Logout">
                                 </button>
                             </form>
@@ -234,8 +236,8 @@ $employees = Employee::all();
             </button>
             <div class="collapse navbar-collapse pad" id="navbarSupportedContent_sub">
                 <ul class="container navbar-nav me-auto">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">โต๊ะ</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" ><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">รายการอาหาร</a></li>
+                    <li class="nav-item text-center" style="width:120px;"><a class="nav-link custom-nav-link-active  justify-content-center"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">โต๊ะ</a></li>
+                    <li class="nav-item text-center" style="width:120px;"><a class="nav-link custom-nav-link  justify-content-center"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">เมนู</a></li>
                 </ul>
             </div>
         </div>
@@ -251,20 +253,24 @@ $employees = Employee::all();
                 <br><br>
                 <!--<div id="output1">Output will be displayed here for Select 1</div>-->
                 <label for="inputSearch">ค้นหา</label>
-                <input type="text" id="searchInput" name="inputSearch" placeholder="Search Table ID"><br>
+                <input type="text" id="searchInput" name="inputSearch"><br>
                 <!--<p id="outputSearch" name="outputSearchValue"></p>-->
                 <table class="table table-bordered">
                     <thead>
                         <tr>
                             <th>โต๊ะ</th>
                             <th>สถานะโต๊ะ</th>
+                            <th>สถานะรายการอาหาร</th>
                             <!-- Add more table headers for other columns as needed -->
                         </tr>
                     </thead>
                     <tbody id="table-all">
                     </tbody><br>
                 </table>
-                <div id="pagination"></div>
+                <nav>
+                    <ul class="pagination justify-content-center" id="pagination">
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
@@ -272,82 +278,105 @@ $employees = Employee::all();
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    var inputValue;
+    var selectedValue;
+
+    function bindInputChange(inputId) {
+        const selectedValue = $('#' + inputId).val();
+        return selectedValue; // Return the selected value
+    }
+
+    function changeMenuStatus(id, value) {
+        var confirmation = confirm('คุณต้องการเปลี่ยนสถานะโต๊ะใช่หรือไม่');
+        if (confirmation) {
+            $.ajax({
+                type: 'GET',
+                url: '/update/table/status/table_id=' + id + '/table_status=' + value,
+                success: function(response) {},
+                error: function(error) {}
+            });
         }
-    });
+    }
 
     $(document).ready(function() {
-
-        function bindInputChange(inputId, outputId) {
-            const selectedValue = $('#' + inputId).val();
-            $('#' + outputId).text(selectedValue);
-            return selectedValue; // Return the selected value
-        }
 
         let currentPage = 1 // Track the current page
         const itemsPerPage = 5 // Number of items to display per page
 
-        var inputValue;
 
-        var selectedValue;
 
-        function updateTables() {
+        //get data from text search
+        $('#searchInput').on('keyup', function() {
+            inputValue = $(this).val();
+            if (/^\/+$/.test(inputValue)) {
+                inputSearchValue = 'null'; // Update inputSearchValue
+            } else {
+                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
+            }
+        });
+
+        function getAllTables() {
             $.ajax({
                 type: 'GET',
-                url: '/get-updated-tables',
+                url: '/management/table/get-all-tables',
                 success: function(response) {
                     // Assuming response.tables_status is an array of objects
-                    const totalTables = response.allTables.length
-                    const startIndex = (currentPage - 1) * itemsPerPage
+                    const statusMapping = [
+                        null, // 0 index is not used
+                        'สั่ง',
+                        'กำลังปรุง',
+                        'เสริฟแล้ว',
+                        'รอชำระเงิน'
+                    ];
+                    const totalTables = response.allTables.length;
+                    if (currentPage > Math.ceil(totalTables / itemsPerPage)) {
+                        currentPage = 1;
+                    }
+                    const startIndex = (currentPage - 1) * itemsPerPage;
                     const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
-
                     let tableData = response.allTables
                         .slice(startIndex, endIndex)
                         .map(table => {
                             return `
                             <tr>
-                                <td>
-                                ${table.table_name}
-                                <form class="goToUserView" action="/order/Table=${table.table_name},PassWord=${table.tables_password}" method="post">
-                                @csrf
-                                <button type="submit" class="btn btn-success">หน้าลูกค้า</button>
-                                </form>
+                                <td class="text-center ">
+                                <p >${table.table_name}</p>
+                                <ul class="container navbar-nav me-auto">
+                                    <ul class="container navbar-nav me-auto "style="width:70px;" >
+                                        <li class="nav-item text-center " title="ปริ้น Qrcode"><a class="nav-link custom-nav-link justify-content-center text-dark" href="/order/generateQRCode/Table=${table.table_name},PassWord=${table.tables_password}"><img class="icon-size-dark spade-bar" src="{{ asset('images/qr-code.png') }}"></a></li>
+                                    </ul>
+                                </ul>
                                 </td>
                                 <td>
-                                <p ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
-                                <form class="status-form-Required" data-table-id="${table.table_name}" action="/update/table/status/${table.table_name}" method="post">
-                                @csrf
-                                <!--<label>
-                                    <input type="radio" name="status" value="1" ${table.tables_status == 1 ? 'checked' : ''}>
-                                    ยกเลิก
-                                </label>-->
-                                <label>
-                                    <input type="radio" name="status" value="2" ${table.tables_status == 2 ? 'checked' : ''}>
+                                <p style="text-align: center;" ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
+                                <label style="margin-left: 10%;">
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2)">
                                     ว่าง
-                                </label>
-                                <label>
-                                    <input type="radio" name="status" value="3" ${table.tables_status == 3 ? 'checked' : ''}>
+                                </label><br><br>
+                                <label style="margin-left: 10%;">
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},3)">
                                     ไม่ว่าง
-                                </label>
-                                <button type="submit" class="btn btn-success">เปลี่ยนสถานะ</button>
-                                </form>
+                                </label><br>
+                                </div>
+                                </td>
+                                <td>
+                                <p style="text-align: center;" ${table.table_order_status === 1 ? 'class="bg-danger text-white"' : table.table_order_status === 2 ? 'class="bg-warning text-white"' : table.table_order_status === 3 ? 'class="bg-info text-white"' :table.table_order_status === 4 ? 'class="bg-primary text-white"' :'class=""'} >${table.table_order_status != null ?statusMapping[table.table_order_status]:'-'}</p>
+                                ${table.table_order_status != null && table.table_order_status !== '' ?
+                                `<ul class="container navbar-nav me-auto">
+                                    <ul class="container navbar-nav me-auto" style="width:70px;">
+                                        <li class="nav-item text-center " title="แสดงรายการสั่งอาหาร"><a class="nav-link custom-nav-link justify-content-center" href="/management/order/table_id=${table.table_id}"><img class="icon-size-dark spade-bar" src="{{ asset('images/document.png') }}"></a></li>
+                                    </ul>
+                                </ul>` : ''}
                                 </td>
                             </tr>`
                         })
 
                     $('#table-all').html(tableData.join('')) // Update the content
 
-                    const totalPages = Math.ceil(totalTables / itemsPerPage)
-                    if (totalPages > 1) {
-                        $('#pagination').empty() // Clear pagination links
-                        for (let i = 1; i <= totalPages; i++) {
-                            $('#pagination').append(
-                                `<button class="page-btn" data-page="${i}">${i}</button>`
-                            )
-                        }
-                    }
+                    const totalPages = Math.ceil(totalTables / itemsPerPage);
+                    $('#pagination').empty();
+                    generatePagination(totalPages)
+
                 },
                 error: function(error) {
                     // Handle error if necessary
@@ -355,22 +384,31 @@ $employees = Employee::all();
             })
         }
 
-        function updateTablesInput(selectedValue) {
+        function getSearchTables(selectedValue) {
             $.ajax({
                 type: 'GET',
-                url: '/get-updated-tables/' + inputValue + ',' + selectedValue,
+                url: '/management/table/category=' + selectedValue + '/search=' + inputValue,
                 success: function(response) {
+                    const statusMapping = [
+                        null, // 0 index is not used
+                        'สั่ง',
+                        'กำลังปรุง',
+                        'เสริฟแล้ว',
+                        'รอชำระเงิน'
+                    ];
 
                     const totalTables = response.allTables.length
+                    if (currentPage > Math.ceil(totalTables / itemsPerPage)) {
+                        currentPage = 1;
+                    }
                     const startIndex = (currentPage - 1) * itemsPerPage
                     const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
-
 
                     let tableData = '';
                     if (totalTables === 0) {
                         tableData = `
                         <tr>
-                            <td colspan="2">
+                            <td colspan="4">
                                 <p>No data</p>
                             </td>
                         </tr>`;
@@ -380,43 +418,44 @@ $employees = Employee::all();
                             .map(table => {
                                 return `
                                 <tr>
-                                <td>
-                                ${table.table_name}</td>
-                                <td>
-                                <p ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
-                                <form class="status-form-Required" data-table-id="${table.table_name}" action="/update/table/status/${table.table_name}" method="post">
-                                @csrf
-                                <!--<label>
-                                    <input type="radio" name="status" value="1" ${table.tables_status == 1 ? 'checked' : ''}>
-                                    ยกเลิก
-                                </label>-->
-                                <label>
-                                    <input type="radio" name="status" value="2" ${table.tables_status == 2 ? 'checked' : ''}>
-                                    ว่าง
-                                </label>
-                                <label>
-                                    <input type="radio" name="status" value="3" ${table.tables_status == 3 ? 'checked' : ''}>
-                                    ไม่ว่าง
-                                </label>
-                                <button type="submit" class="btn btn-success">เปลี่ยนสถานะ</button>
-                                </form>
+                                <td class="text-center ">
+                                <p >${table.table_name}</p>
+                                <ul class="container navbar-nav me-auto">
+                                    <ul class="container navbar-nav me-auto "style="width:70px;" >
+                                        <li class="nav-item text-center " title="ปริ้น Qrcode"><a class="nav-link custom-nav-link justify-content-center text-dark" href="/order/generateQRCode/Table=${table.table_name},PassWord=${table.tables_password}"><img class="icon-size-dark spade-bar" src="{{ asset('images/qr-code.png') }}"></a></li>
+                                    </ul>
+                                </ul>
                                 </td>
-                                </tr>`;
+                                <td>
+                                <p style="text-align: center;" ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
+                                <label style="margin-left: 10%;">
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2)">
+                                    ว่าง
+                                </label><br><br>
+                                <label style="margin-left: 10%;">
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},3)">
+                                    ไม่ว่าง
+                                </label><br>
+                                </div>
+                                </td>
+                                <td>
+                                <p style="text-align: center;" ${table.table_order_status === 1 ? 'class="bg-danger text-white"' : table.table_order_status === 2 ? 'class="bg-warning text-white"' : table.table_order_status === 3 ? 'class="bg-info text-white"' :table.table_order_status === 4 ? 'class="bg-primary text-white"' :'class=""'} >${table.table_order_status != null ?statusMapping[table.table_order_status]:'-'}</p>
+                                ${table.table_order_status != null && table.table_order_status !== '' ?
+                                `<ul class="container navbar-nav me-auto">
+                                    <ul class="container navbar-nav me-auto" style="width:70px;">
+                                        <li class="nav-item text-center " title="แสดงรายการสั่งอาหาร"><a class="nav-link custom-nav-link justify-content-center" href="/management/order/table_id=${table.table_id}"><img class="icon-size-dark spade-bar" src="{{ asset('images/document.png') }}"></a></li>
+                                    </ul>
+                                </ul>` : ''}
+                                </td>
+                            </tr>`;
                             })
                             .join('');
                     }
 
                     $('#table-all').html(tableData); // Update the content
-                    const totalPages = Math.ceil(totalTables / itemsPerPage)
+                    const totalPages = Math.ceil(totalTables / itemsPerPage);
                     $('#pagination').empty();
-                    if (totalPages > 1) {
-                        $('#pagination').empty() // Clear pagination links
-                        for (let i = 1; i <= totalPages; i++) {
-                            $('#pagination').append(
-                                `<button class="page-btn" data-page="${i}">${i}</button>`
-                            )
-                        }
-                    }
+                    generatePaginationUpdateTables(totalPages)
                 },
                 error: function(error) {
                     // Handle error if necessary
@@ -425,63 +464,124 @@ $employees = Employee::all();
         }
 
         // Handle page navigation
-        $(document).on('click', '.page-btn', function() {
+        //สำหรับ all
+        $(document).on('click', '.page-btn-all', function() {
             currentPage = parseInt($(this).data('page'))
-            //updateTables()
+            getAllTables();
         })
 
-        updateTables()
-        selectedValue = bindInputChange('input1', 'output1')
+        $(document).on('click', '.page-btn-update', function() {
+            currentPage = parseInt($(this).data('page'))
+            getSearchTables(selectedValue);
+        })
+
+        function generatePagination(totalPages) {
+            if (totalPages > 1) {
+                $('#pagination').empty(); // Clear pagination links
+
+                // Calculate the range of pages to show
+                const numPagesToShow = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+                // Add the "Previous" page if not on the first page
+                if (currentPage > 1) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;</a></li>
+                        `);
+                }
+
+                // Add pages before the current page
+                for (let i = startPage; i < currentPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the current page
+                $('#pagination').append(`
+                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
+                        `);
+
+                // Add pages after the current page
+                for (let i = currentPage + 1; i <= endPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the "Next" page if not on the last page
+                if (currentPage < totalPages) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;</a></li>
+                        `);
+                }
+            }
+        }
+
+        function generatePaginationUpdateTables(totalPages) {
+            if (totalPages > 1) {
+                $('#pagination').empty(); // Clear pagination links
+
+                // Calculate the range of pages to show
+                const numPagesToShow = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+                // Add the "Previous" page if not on the first page
+                if (currentPage > 1) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-update" data-page="${1}"><a class="page-link" href="#">&lt;</a></li>
+                        `);
+                }
+
+                // Add pages before the current page
+                for (let i = startPage; i < currentPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-update" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the current page
+                $('#pagination').append(`
+                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
+                        `);
+
+                // Add pages after the current page
+                for (let i = currentPage + 1; i <= endPage; i++) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-update" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+                }
+
+                // Add the "Next" page if not on the last page
+                if (currentPage < totalPages) {
+                    $('#pagination').append(`
+                            <li class="page-item page-btn-update" data-page="${totalPages}"><a class="page-link" href="#">&gt;</a></li>
+                        `);
+                }
+            }
+        }
+
+        getAllTables()
+        selectedValue = bindInputChange('input1')
 
         setInterval(function() {
-            selectedValue = bindInputChange('input1', 'output1');
+            selectedValue = bindInputChange('input1');
+            /*console.log("selectedValue: " + selectedValue);
+            console.log("inputValue: " + inputValue);*/
             if (inputValue == null || inputValue === '') {
-                updateTables()
+                getAllTables()
             } else {
-                updateTablesInput(selectedValue)
+                getSearchTables(selectedValue)
             }
-        }, 3000) // 2 seconds
+        }, 2000) // 2 seconds
         /*------------------------------------------------------------------------ */
 
-        $('#searchInput').on('keyup', function() {
-            inputValue = $(this).val();
-            if (/^\/+$/.test(inputValue)) {
-                inputValue = 'null';
-            }
-            if (inputValue == null || inputValue == '') {
-                $('#outputSearch').text('no input');
-            } else {
-                $('#outputSearch').text(inputValue);
-            }
-
-        });
-
-        $(document).on('submit', '.status-form-Required', function(event) {
-            event.preventDefault();
-
-            var form = $(this);
-            var tableId = form.data('table-id-Required');
-            var formData = form.serialize();
-
-            if (!$('input[name="status"]:checked', form).val()) {
-                alert('กรุณาเลือกสถานะก่อน');
-                return;
-            }
-
-            var confirmation = confirm('คุณแน่ต้องการเปลี่ยนสถานะโต๊ะใช่หรือไม่');
-            if (confirmation) {
-                $.ajax({
-                    type: 'POST',
-                    url: form.attr('action'),
-                    data: formData,
-                    success: function(response) {},
-                    error: function(error) {}
-                });
-            }
-        });
 
     })
 </script>
+
 
 
 

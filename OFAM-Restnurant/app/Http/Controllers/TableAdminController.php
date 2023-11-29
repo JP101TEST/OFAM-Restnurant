@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\table;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 class TableAdminController extends Controller
 {
@@ -62,6 +63,32 @@ class TableAdminController extends Controller
         return view('management/admin_page/management_table');
     }
 
+    public function editTable(Request $request)
+    {
+        $table_id = Route::current()->parameter('table_id');
+        $table = DB::table('tables')
+            ->where('table_id', $table_id)
+            ->get();
+        $tableName = $request->input('tableName');
+        $tableName_duplicate_same_id = DB::table('tables')
+            ->where('table_name', $tableName)
+            ->where('table_id', '!=', $table_id)
+            ->count();
+        if ($tableName_duplicate_same_id > 0) {
+            session(['errorTableName' => 'ชื่อ '.$tableName.' นี้มีการใช้งานแล้ว']);
+            return redirect()->route('management.admin.table.edit',['tables_id'=> $table_id]);
+        }
+        if ($tableName != null && $tableName != $table[0]->table_name) {
+            //print('Update name' . '<br>');
+            DB::table('tables')
+                ->where('table_id', $table_id)
+                ->update([
+                    'table_name' => $tableName,
+                ]);
+        }
+        return view('management/admin_page/management_table');
+    }
+
     public function checkEmptyName($name)
     {
         if ($name == '') {
@@ -89,21 +116,21 @@ class TableAdminController extends Controller
 
     public function getAllTables()
     {
-        $allTables = Table::orderBy('tables_status', 'asc')
-            ->orderBy('table_name', 'asc')
+        $allTables = Table::orderBy('table_name', 'asc')
             ->get();
         return response()->json(['allTables' => $allTables]);
     }
 
-    public function getUpdatedTables(Request $request, $table_inpt_id, $table_select_inpt)
+    public function getTablesFromSearch()
     {
-
-        if ($table_select_inpt == 'name') {
-            $tables = Table::where('table_name', 'LIKE', "%$table_inpt_id%")
+        $category = Route::current()->parameter('category');
+        $search = Route::current()->parameter('search');
+        if ($category == 0) {
+            $tables = Table::where('table_name', 'LIKE', "%$search%")
                 ->orderBy('table_name', 'asc') // Change 'asc' to 'desc' for descending order
                 ->get();
         } else {
-            $tables = Table::where('tables_status', 'LIKE', "%$table_inpt_id%")
+            $tables = Table::where('tables_status', 'LIKE', "$search%")
                 ->orderBy('tables_status', 'asc') // Change 'asc' to 'desc' for descending order
                 ->get();
         }

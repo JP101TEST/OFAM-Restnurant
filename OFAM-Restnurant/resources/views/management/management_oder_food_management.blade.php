@@ -1,18 +1,31 @@
 <?php
+/*
+    SELECT
+        fo.food_order_id,t.table_name,m.menu_name,m.menu_image,fo.food_amount,fo.food_order_status,fo.date_order
+    FROM
+        `food_orders` AS fo
+        INNER JOIN
+        `tables` AS t
+        ON
+        fo.table_id = t.table_id
+        INNER JOIN
+        `menus` AS m
+        ON
+        fo.menu_id = m.menu_id
+    WHERE
+        1
+*/
 
+use App\Models\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use App\Models\menu_category;
 
-$menuCategorys = menu_category::all();
-$menu_id = Route::current()->parameter('menu_id');
-$menu = DB::table('menus')
-    ->where('menu_id', $menu_id)->get();
-
-$price_history = DB::table('price_histories')
-    ->where('menu_id', $menu_id)
-    ->where('date_end', null)->get();
-
+$table_id = Route::current()->parameter('table_id');
+$table_name = Table::where('table_id', $table_id)->get();
+$food_orders = DB::table('food_orders')
+    ->where('table_id', $table_id)
+    ->where('food_order_status', '!=', 'ชำระเงินเรียบร้อย')
+    ->get();
 ?>
 
 <!DOCTYPE html>
@@ -21,7 +34,7 @@ $price_history = DB::table('price_histories')
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>MOFL</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <!--<link href="{{ asset('css/test.css') }}" rel="stylesheet">-->
@@ -191,7 +204,15 @@ $price_history = DB::table('price_histories')
             justify-self: center;
 
         }
+
+        .menu-size {
+            height: 150px;
+            width: 150px;
+
+        }
     </style>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>
@@ -221,98 +242,73 @@ $price_history = DB::table('price_histories')
                                     <img class="icon-brightness" src="{{ asset('images/logout_FILL0_wght400_GRAD0_opsz24.png') }}" alt="Logout">
                                 </button>
                             </form>
-                        </a>
-                    </li>
+                        </a></li>
                 </ul>
             </div>
         </div>
     </nav>
-    <div class="container">
-        <br>
-        <div class="col-lg-12 d-flex justify-content-between">
-            <div class="mb-1 row">
-                <ul class="col navbar-nav me-auto width-150">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand"></a>
+            <button class="navbar-toggler w-100" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_sub" aria-controls="navbarSupportedContent_sub" aria-expanded="false" aria-label="Toggle navigation">
+                <div class="d-flex flex-row justify-content-between align-items-center">
+                    <div class="align-items-center">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">
+                        <!--เมนูการจัดการ-->
+                    </div>
+                    <span class="navbar-toggler-icon"></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse pad" id="navbarSupportedContent_sub">
+                <ul class="container navbar-nav me-auto">
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.getRequest')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
                 </ul>
             </div>
         </div>
+    </nav>
+    <br>
+    <h4 class="text-center">จัดการรายการเมนู<br>โต๊ะ {{ $table_name[0]->table_name}}</h4>
+    <div class="container">
         <div class="row mt-3">
             <div class="col-lg-12">
-                <br>
-                <h4 class="text-center">แก้ไขข้อมูลอาหาร</h4>
-                <div class="mb-3 container text-center">
-                <img class="menu-size-edit" src="{{ asset('images/menu/' . $menu[0]->menu_image ) }}" alt=""><br>
-                </div>
-                <div class="mb-3 container">
-                    <p>เพิ่ม:</p>
-                </div>
-                <form method="post" action="{{ route('management.admin.food.menu.edit.postData', ['menu_id' => $menu[0]->menu_id]) }}" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ชื่ออาหาร:</label>
-                        @if (session('errorMenuName'))
-                        <p class="text-center text-light bg-danger">{{ session('errorMenuName') }}</p>
-                        @endif
-                        <input type="text" class="form-control " id="formGroupExampleInput" name="menuName" value="{{ $menu[0]->menu_name }}" placeholder="กรอกชื่ออาหาร">
-                    </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dollar.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ราคา:</label>
-                        <input type="number" class="form-control " id="formGroupExampleInput2" name="menuPrice" value="{{ $price_history[0]->price }}" min="1" placeholder="กรอกชื่อราคา">
-                    </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/insert-picture-icon.png') }}" alt="">
-                        <label for="formGroupExampleInput2" class="form-label">รูปอาหาร:</label>
-                        @if (session('errorImage'))
-                        <p class="text-center text-light bg-danger">{{ session('errorImage') }}</p>
-                        @endif
-                        <input type="file" class="form-control " id="formGroupExampleInput3" name="menuImage" accept="image/*" placeholder="Another input placeholder">
-                    </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/menu.png') }}" alt="">
-                        <label for="formGroupExampleInput2" class="form-label">หมวดหมู่:</label>
-                        @if (session('errorMenuCategory'))
-                        <p class="text-center text-light bg-danger">{{ session('errorMenuCategory') }}</p>
-                        @endif
-                        <select class="form-select " aria-label="Default select example" name="menuCategory" disabled>
-                            @foreach ($menuCategorys as $menuCategory)
-                            <option value="{{ $menuCategory->menu_category_id }}" @if($menuCategory->menu_category_id == $menu[0]->menu_category_id) selected="selected" @endif>{{ $menuCategory->menu_category_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    {{ session()->forget(['errorMenuName','errorImage','errorMenuCategory']) }}
-                    <div class="col-lg-12 d-flex justify-content-between">
-                        <div class="col navbar-nav me-auto width-150">
-                            <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');">
-                                <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
-                                เพิ่ม
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                <br>
-                <div class="container">
-                    <div class="row mt-3">
-                        <div class="col-lg-12">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>ราคา</th>
-                                        <th>วันที่เริ่ม</th>
-                                        <th>วันที่สิ้นสุด</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="table-price">
-                                </tbody><br>
-                                <br>
-                            </table>
-                            <nav>
-                                <ul class="pagination justify-content-center" id="pagination">
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
+                <!--<label for="selectSearch">ค้นหาด้วย</label>
+                <select id="input1" name="selectSearch">
+                    <option value="name">ชื่อโต๊ะ</option>
+                    <option value="status">สถานะโต๊ะ</option>
+                </select>
+                <br><br>
+                <label for="inputSearch">ค้นหา</label>
+                <input type="text" id="searchInput" name="inputSearch"><br>-->
+                <label for="selectSearch">หมวดหมู่ที่แสดง</label>
+                <select id="inputSelected" name="selectSearch">
+                    <option value="0">ทั้งหมด</option>
+                    <option value="1">สั่ง</option>
+                    <option value="2">กำลังปรุง</option>
+                    <option value="3">เสริฟแล้ว</option>
+                </select><br><br>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>เมนู</th>
+                            <th>จำนวน</th>
+                            <th>สถานะเมนู</th>
+                            <!-- Add more table headers for other columns as needed -->
+                        </tr>
+                    </thead>
+                    <tbody id="menu-all">
+                    </tbody><br>
+                </table>
+                <nav>
+                    <ul class="pagination justify-content-center" id="pagination">
+                    </ul>
+                </nav>
+            </div>
+            <div class="col-lg-12 d-flex justify-content-between">
+                <div class="col navbar-nav me-auto width-150">
+                    <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');" disabled>
+                        <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
+                        ชำระเงิน
+                    </button>
                 </div>
             </div>
         </div>
@@ -321,37 +317,115 @@ $price_history = DB::table('price_histories')
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        let currentPage = 1 // Track the current page
-        const itemsPerPage = 5 // Number of items to display per page
+    var selectedStatus;
 
-        var id = <?php echo json_encode($menu_id); ?>;
+    function bindInputChange(inputId) {
+        const selectedValue = $('#' + inputId).val();
+        return selectedValue; // Return the selected value
+    }
 
-
-        function getAllpriceHistory(id) {
+    function deleteOder(id) {
+        var confirmation = confirm('คุณต้องการลบเมนูที่สั่งใช่หรือไม่');
+        if (confirmation) {
             $.ajax({
                 type: 'GET',
-                url: '/management-admin/food/menu/edit/getPriceHistory/MenuId=' + id,
+                url: '/management/order/order_id=' + id + '/delete',
+                success: function(response) {},
+                error: function(error) {}
+            });
+        }
+    }
+
+    function changeStatusOder(id, value) {
+        var confirmation = confirm('คุณต้องการเปลี่ยนสถานะเมนูที่สั่งใช่หรือไม่');
+        if (confirmation) {
+            $.ajax({
+                type: 'GET',
+                url: '/management/order/order_id=' + id + ',status=' + value + '/change_status',
+                success: function(response) {},
+                error: function(error) {}
+            });
+        }
+    }
+
+    function checkPay(s1,s2) {
+        if (s1 == 0 && s2 == 0) {
+            submitButton.disabled = false;
+        } else {
+            submitButton.disabled = true;
+        }
+    }
+
+    $(document).ready(function() {
+        var id = <?php echo json_encode($table_id); ?>;
+
+        let currentPage = 1 // Track the current page
+        const itemsPerPage = 10 // Number of items to display per page
+
+
+
+        //get data from text search
+        $('#searchInput').on('keyup', function() {
+            inputValue = $(this).val();
+            if (/^\/+$/.test(inputValue)) {
+                inputSearchValue = 'null'; // Update inputSearchValue
+            } else {
+                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
+            }
+        });
+
+        function getAllMenu(show) {
+            $.ajax({
+                type: 'GET',
+                url: '/management/order/table_id=' + id + '/get-all-menu/show=' + show,
                 success: function(response) {
                     // Assuming response.tables_status is an array of objects
-                    const totalPriceHistory = response.allPriceHistory.length
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalPriceHistory);
-
-                    let tableData = response.allPriceHistory
+                    const totalMenus = response.allMenus.length;
+                    const status1 = response.statusCounts.status1;
+                    const status2 = response.statusCounts.status2;
+                    /*console.log("สั่ง:" + status1);
+                    console.log("กำลังปรุง:" + status2);*/
+                    checkPay(status1,status2);
+                    if (currentPage > Math.ceil(totalMenus / itemsPerPage)) {
+                        currentPage = 1;
+                    }
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenus);
+                    let tableData = response.allMenus
                         .slice(startIndex, endIndex)
-                        .map(price => {
+                        .map(menu => {
                             return `
                             <tr>
-                        <td>${price.price}</td>
-                        <td>${price.date_start}</td>
-                        <td>${price.date_end || '-'}</td>
-                    </tr>`
+                                <td style="margin-left: 10%;">
+                                ชื่อ : ${menu.menu_name}<br><br>
+                                <img class="menu-size" src="/images/menu/${menu.menu_image}" alt=""><br>
+                                </td>
+                                <td style="text-align: center;vertical-align: middle;font-size:30px;">
+                                <p>${menu.food_amount}</p><br>
+                                </td>
+                                <td>
+                                <p style="text-align: center;" ${menu.food_order_status == 'สั่ง' ? 'class="bg-danger text-white"' : menu.food_order_status == 'กำลังปรุง' ? 'class="bg-warning text-white"' : menu.food_order_status == 'เสริฟแล้ว' ? 'class="bg-info text-white"' :menu.food_order_status == 'รอชำระเงิน' ? 'class="bg-primary text-white"' :'class=""'} >${menu.food_order_status != null ?menu.food_order_status:'-'}</p>
+                                ${menu.food_order_status == 'สั่ง' ?
+                                `<label style="margin-left: 10%;">
+                                    <input type="radio" name="status" " onclick="deleteOder(${menu.food_order_id})">
+                                    ยกเลิก
+                                </label><br><br><label style="margin-left: 10%;">
+                                    <input type="radio" name="status" " onclick="changeStatusOder(${menu.food_order_id},2)">
+                                    กำลังปรุง
+                                </label><br><br>`: menu.food_order_status == 'กำลังปรุง' ?
+                                `<label style="margin-left: 10%;">
+                                    <input type="radio" name="status" " onclick="changeStatusOder(${menu.food_order_id},3)">
+                                    เสริฟแล้ว
+                                </label><br><br>` :
+                                ``}
+                                </td>
+                            </tr>`
+
                         })
 
-                    $('#table-price').html(tableData.join('')) // Update the content
+                    $('#menu-all').html(tableData.join('')) // Update the content
 
-                    const totalPages = Math.ceil(totalPriceHistory / itemsPerPage)
+                    const totalPages = Math.ceil(totalMenus / itemsPerPage);
                     $('#pagination').empty();
                     generatePagination(totalPages)
 
@@ -362,10 +436,15 @@ $price_history = DB::table('price_histories')
             })
         }
 
+
+
+        // Handle page navigation
+        //สำหรับ all
         $(document).on('click', '.page-btn-all', function() {
             currentPage = parseInt($(this).data('page'))
-            getAllpriceHistory(id);
+            getAllMenu();
         })
+
 
         function generatePagination(totalPages) {
             if (totalPages > 1) {
@@ -411,9 +490,27 @@ $price_history = DB::table('price_histories')
             }
         }
 
-        //console.log(id);
-        getAllpriceHistory(id);
+
+
+        getAllMenu()
+        selectedStatus = bindInputChange('inputSelected')
+
+        setInterval(function() {
+            selectedStatus = bindInputChange('inputSelected');
+            /*console.log("selectedStatus: " + selectedStatus);
+            console.log("inputValue: " + inputValue);*/
+
+            getAllMenu(selectedStatus)
+
+        }, 2000) // 2 seconds
+        /*------------------------------------------------------------------------ */
+
+
     })
 </script>
+
+
+
+
 
 </html>

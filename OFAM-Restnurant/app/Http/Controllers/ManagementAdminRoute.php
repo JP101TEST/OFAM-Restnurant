@@ -52,6 +52,17 @@ class ManagementAdminRoute extends Controller
         }
     }
 
+    public function goTableEditpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_table_edit');
+        }
+    }
+
     public function goFoodpageWithGet()
     {
         if (empty(session('User'))) {
@@ -130,6 +141,50 @@ class ManagementAdminRoute extends Controller
             return view('management/management_oder_food_list');
         } else {
             return view('management/admin_page/management_promotion_edit');
+        }
+    }
+
+    public function goEmployeepageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_employee');
+        }
+    }
+
+    public function goEmployeeAddpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_employee_add');
+        }
+    }
+
+    public function goEmployeeViewpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_employee_view');
+        }
+    }
+
+    public function goEmployeeEditpageWithGet()
+    {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_employee_edit');
         }
     }
 }

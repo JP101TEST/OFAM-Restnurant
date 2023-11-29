@@ -204,8 +204,6 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
             <div class="collapse navbar-collapse" id="navbarSupportedContent_test">
                 <ul class="container navbar-nav me-auto">
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="{{ route('management.getRequest')}}">รายการโต๊ะ</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">About</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active justify-content-center pad-lr" href="#!">Contact</a></li>
                     @if(session('User')[0]->management_lavel == 'admin')
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link-active bg-active text-center active" aria-current="page" href="{{ route('management.admin.home')}}">จัดการร้าน</a></li>
                     @endif
@@ -245,6 +243,7 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">ข้อมูลโต๊ะ</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">ข้อมูลอาหาร</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">ข้อมูลโปรโมชั่น</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.employee')}}"><img class="icon-size spade-bar" src="{{ asset('images/owner.png') }}" alt="">ข้อมูลพนักงาน</a></li>
                 </ul>
             </div>
         </div>
@@ -264,12 +263,12 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
 
                 <label for="selectSearch">ค้นหาด้วย</label>
                 <select id="input1" name="selectSearch">
-                    <option value="name">ชื่อโต๊ะ</option>
-                    <option value="status">สถานะโต๊ะ</option>
+                    <option value="0">ชื่อโต๊ะ</option>
+                    <option value="1">สถานะโต๊ะ</option>
                 </select>
                 <br><br>
                 <label for="inputSearch">ค้นหา</label>
-                <input type="text" id="searchInput" name="inputSearch" placeholder="Search Table ID"><br>
+                <input type="text" id="searchInput" name="inputSearch"><br>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -293,17 +292,25 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
 </body>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
+    var inputValue;
+    var selectedValue;
 
     function bindInputChange(inputId) {
         const selectedValue = $('#' + inputId).val();
         return selectedValue; // Return the selected value
     }
 
+    function changeMenuStatus(id, value) {
+        var confirmation = confirm('คุณต้องการเปลี่ยนสถานะโต๊ะใช่หรือไม่');
+        if (confirmation) {
+            $.ajax({
+                type: 'GET',
+                url: '/update/table/status/table_id=' + id + '/table_status=' + value,
+                success: function(response) {},
+                error: function(error) {}
+            });
+        }
+    }
 
 
 
@@ -313,14 +320,15 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
         let currentPage = 1 // Track the current page
         const itemsPerPage = 5 // Number of items to display per page
 
-        var inputValue;
 
-        var selectedValue;
 
+        //get data from text search
         $('#searchInput').on('keyup', function() {
             inputValue = $(this).val();
             if (/^\/+$/.test(inputValue)) {
-                inputValue = 'null';
+                inputSearchValue = 'null'; // Update inputSearchValue
+            } else {
+                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
             }
         });
 
@@ -349,24 +357,21 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                                 </td>
                                 <td>
                                 <p ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
-                                <form class="status-form-Required" data-table-id="${table.table_name}" action="/update/table/status/${table.table_name}" method="post">
-                                @csrf
                                 <label>
-                                    <input type="radio" name="status" value="1" ${table.tables_status == 1 ? 'checked' : ''}>
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},1)">
                                     ยกเลิก
                                 </label>
                                 <label>
-                                    <input type="radio" name="status" value="2" ${table.tables_status == 2 ? 'checked' : ''}>
+                                <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2)">
                                     ว่าง
                                 </label>
-                                <!--
-                                <label>
-                                    <input type="radio" name="status" value="3" ${table.tables_status == 3 ? 'checked' : ''}>
-                                    ไม่ว่าง
-                                </label>
-                                -->
-                                <button type="submit" class="btn btn-success">เปลี่ยนสถานะ</button>
-                                </form>
+                                </td>
+                                <td>
+                                    <ul class="container navbar-nav me-auto">
+                                        <ul class="container navbar-nav me-auto">
+                                            <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/table/edit/tables_id=${table.table_id}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">แก้ไข</a></li>
+                                        </ul>
+                                    </ul>
                                 </td>
                             </tr>`
                         })
@@ -384,10 +389,10 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
             })
         }
 
-        function getUpdateTables(selectedValue) {
+        function getSearchTables(selectedValue) {
             $.ajax({
                 type: 'GET',
-                url: '/management-admin/table/' + inputValue + ',' + selectedValue,
+                url: '/management-admin/table/category=' + selectedValue + '/search=' + inputValue,
                 success: function(response) {
 
                     const totalTables = response.allTables.length
@@ -419,24 +424,21 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                                 </td>
                                 <td>
                                 <p ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
-                                <form class="status-form-Required" data-table-id="${table.table_name}" action="/update/table/status/${table.table_name}" method="post">
-                                @csrf
                                 <label>
-                                    <input type="radio" name="status" value="1" ${table.tables_status == 1 ? 'checked' : ''}>
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},1)">
                                     ยกเลิก
                                 </label>
                                 <label>
-                                    <input type="radio" name="status" value="2" ${table.tables_status == 2 ? 'checked' : ''}>
+                                <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2)">
                                     ว่าง
                                 </label>
-                                <!--
-                                <label>
-                                    <input type="radio" name="status" value="3" ${table.tables_status == 3 ? 'checked' : ''}>
-                                    ไม่ว่าง
-                                </label>
-                                -->
-                                <button type="submit" class="btn btn-success">เปลี่ยนสถานะ</button>
-                                </form>
+                                </td>
+                                <td>
+                                    <ul class="container navbar-nav me-auto">
+                                        <ul class="container navbar-nav me-auto">
+                                            <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/table/edit/tables_id=${table.table_id}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">แก้ไข</a></li>
+                                        </ul>
+                                    </ul>
                                 </td>
                                 </tr>`;
                             })
@@ -559,38 +561,17 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
 
         setInterval(function() {
             selectedValue = bindInputChange('input1');
+            /*console.log("selectedValue: " + selectedValue);
+            console.log("inputValue: " + inputValue);*/
             if (inputValue == null || inputValue === '') {
                 getAllTables()
             } else {
-                getUpdateTables(selectedValue)
+                getSearchTables(selectedValue)
             }
-        }, 3000) // 2 seconds
+        }, 2000) // 2 seconds
         /*------------------------------------------------------------------------ */
 
 
-        $(document).on('submit', '.status-form-Required', function(event) {
-            event.preventDefault();
-
-            var form = $(this);
-            var tableId = form.data('table-id-Required');
-            var formData = form.serialize();
-
-            if (!$('input[name="status"]:checked', form).val()) {
-                alert('กรุณาเลือกสถานะก่อน');
-                return;
-            }
-
-            var confirmation = confirm('คุณต้องการเปลี่ยนสถานะโต๊ะใช่หรือไม่');
-            if (confirmation) {
-                $.ajax({
-                    type: 'POST',
-                    url: form.attr('action'),
-                    data: formData,
-                    success: function(response) {},
-                    error: function(error) {}
-                });
-            }
-        });
     })
 </script>
 

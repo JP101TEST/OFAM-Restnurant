@@ -3,10 +3,10 @@
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-$promotion_id = Route::current()->parameter('promotion_id');
-$promotion = DB::table('promotions')
-    ->where('promotion_id', $promotion_id)->get();
 
+$employee_id = Route::current()->parameter('employee_id');
+$employee = DB::table('employees')
+    ->where('employees_id', $employee_id)->get();
 ?>
 
 <!DOCTYPE html>
@@ -26,10 +26,6 @@ $promotion = DB::table('promotions')
 
         .ddy {
             background-color: rgb(167, 167, 167);
-        }
-
-        .text_red {
-            color: red;
         }
 
         .custom-nav-link {
@@ -179,6 +175,18 @@ $promotion = DB::table('promotions')
             color: white;
         }
 
+        .bg-yellow {
+            background-color: #c0b17f;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
+        .bg-yellow:hover {
+            background-color: #e9bc26;
+            /* Change this to your desired background color */
+            color: white;
+        }
+
         .error-input {
             border: 1px solid red;
         }
@@ -223,91 +231,81 @@ $promotion = DB::table('promotions')
         <div class="col-lg-12 d-flex justify-content-between">
             <div class="mb-1 row">
                 <ul class="col navbar-nav me-auto width-150">
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link yellow-bg justify-content-center" href="{{ route('management.admin.employee')}}"><img class="icon-size spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">ย้อนกลับ</a></li>
                 </ul>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-lg-12">
                 <br>
-                <h4 class="text-center">แก้ไขรายการอาหาร</h4>
-                <div class="mb-3 container">
-                    <p>แก้ไข:</p>
+                <h4 class="text-center">ข้อมมูลพนักงาน</h4>
+                <div class="mb-3 container text-center">
+                    <img class="menu-size-edit" src="{{ asset('images/employees/' . $employee[0]->employees_picture ) }}" alt=""><br>
                 </div>
-                <form method="post" action="{{ route('management.admin.promotion.edit.postData', ['promotion_id' => $promotion[0]->promotion_id]) }}" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/discount.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ชื่อโปรโมชั่น:</label>
-                        @if (session('errorPromotionName'))
-                        <p class="text-center text-light bg-danger">{{ session('errorPromotionName') }}</p>
-                        @endif
-                        <input type="text" class="form-control" id="formGroupExampleInput" name="promotionName" value="{{ $promotion[0]->promotion_name }}" placeholder="กรอกชื่อโปรโมชั่น" oninput="checkInputs()">
+                <div class="mb-3 container">
+                    <p>ข้อมูล:</p>
+                </div>
+                <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/id-card.png') }}" alt="">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">รหัสประจำตัวพนักงาน:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput1" name="employeeId" value="{{ $employee[0]->employees_id}}" placeholder="กรอกรหัส" disabled>
                     </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/percentage.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">เปอร์เซ็นต์ส่วนลด:</label>
-                        <p class="text-center text-light bg-danger" id="errorPromotionPercentage" style="display: none;">{{ "ข้อมูลเป็นตัวเลขและ 0-100 เท่านั้น" }}</p>
-                        <input type="number" class="form-control error-input" id="formGroupExampleInput2" name="promotionPercentage" min="1" max="100" value="{{ $promotion[0]->discount }}" placeholder="กรอกชื่อเปอร์เซ็นต์ส่วนลด" oninput="checkInputs()">
+                    <div class="col-md-6 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">รหัสผ่านพนักงาน:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput2" name="employeePassword" value="{{ $employee[0]->employees_password}}" placeholder="กรอกรหัสผ่าน" disabled>
                     </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/timetable.png') }}" alt="">
-                        <label for="formGroupExampleInput2" class="form-label">วันที่เริ่มโปรโมชั่น:</label>
-                        <input type="date" class="form-control" id="formGroupExampleInput3" value="{{ $promotion[0]->date_start }}" name="startDate" oninput="checkInputs()">
+                </div>
+                <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/owner.png') }}" alt="">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">ชื่อ:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput3" name="employeeFname" value="{{$employee[0]->first_name}}" placeholder="กรอกชื่อ" disabled>
                     </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/timetable.png') }}" alt="">
-                        <label for="formGroupExampleInput2" class="form-label">วันที่สิ้นสุดโปรโมชั่น:<a class="text_red">(สามารถเว้นว่างได้กรณีที่ไม่ต้องการหยุดการใช้โปรโมชั่น)</a></label>
-                        <input type="date" class="form-control" id="formGroupExampleInput4" value="{{ $promotion[0]->date_end }}" name="endDate" oninput="checkInputs()">
+                    <div class="col-md-6 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">นามสกุล:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput4" name="employeeLname" value="{{ $employee[0]->last_name }}" placeholder="กรอกนามสกุล" disabled>
                     </div>
-                    {{ session()->forget(['errorPromotionName','errorPromotionPercentage']) }}
-                    <div class="col-lg-12 d-flex justify-content-between">
-                        <div class="col navbar-nav me-auto width-150">
-                            <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');" disabled>
-                                <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
-                                เพิ่ม
-                            </button>
-                        </div>
+                </div>
+                <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/home.png') }}" alt="">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">บ้านเลขที่:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput6" name="employeeHouseNumber" value="{{ $employee[0]->house_number }}" placeholder="กรอกบ้านเลขที่" disabled>
                     </div>
-                </form>
+                    <div class="col-md-4 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">ถนน:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput7" name="employeeRoad" value="{{ $employee[0]->road ? $employee[0]->road : '-' }}" placeholder="กรอกหรือไม่กรอกก็ได้" disabled>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">ตำบล:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput8" name="employeeSubDistrict" value="{{ $employee[0]->sub_district }}" placeholder="กรอกตำบล" disabled>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">อำเภอ:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput9" name="employeeDistrict" value="{{ $employee[0]->district }}" placeholder="กรอกอำเภอ" disabled>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">จังหวัด:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput10" name="employeeProvince" value="{{ $employee[0]->province }}" placeholder="กรอกจังหวัด" disabled>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="formGroupExampleInput" class="form-label">รหัสไปรษณีย์:</label>
+                        <input type="text" class="form-control" id="formGroupExampleInput11" name="employeePostalCode" value="{{ $employee[0]->postal_code }}" placeholder="กรอกรหัสไปรษณีย์" maxlength="5" disabled>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="formGroupExampleInput" class="form-label">เบอร์ติดต่อ:</label>
+                    <input type="text" class="form-control" id="formGroupExampleInput12" name="employeePhone" value="{{ $employee[0]->employees_phone }}" placeholder="กรอกเบอร์ติดต่อ" maxlength="10" disabled>
+                </div>
+                <div class="col-lg-12 d-flex justify-content-between">
+                    <div class="col navbar-nav me-auto width-150">
+                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/employee/edit/employeeId={{$employee[0]->employees_id}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">แก้ไข</a></li>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </body>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        checkInputs();
-    })
-
-    function checkInputs() {
-        const promotionPercentage = document.getElementById('formGroupExampleInput2');
-        const errorElement = document.getElementById("errorPromotionPercentage");
-
-
-        const submitButton = document.getElementById('submitButton');
-
-        // Check if any input field is empty or the menuCategory is not selected
-
-
-        if (promotionPercentage.value.trim() === '') {
-            promotionPercentage.classList.add('error-input');
-            promotionPercentage = null;
-        } else {
-            promotionPercentage.classList.remove('error-input');
-        }
-
-        // Check if the input value is outside the valid range
-        if (promotionPercentage.value < 1 || promotionPercentage.value > 100) {
-            submitButton.disabled = true;
-            errorMessage.style.display = 'block';
-            errorElement.style.display = "block"; // Show the error message
-        } else {
-            errorElement.style.display = "none"; // Hide the error message
-            submitButton.disabled = false;
-        }
-    }
-</script>
-
 
 </html>

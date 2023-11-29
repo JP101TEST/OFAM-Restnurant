@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\promotion;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
-use Psy\VersionUpdater\Checker;
+
 
 class PromotionController extends Controller
 {
@@ -76,7 +76,7 @@ class PromotionController extends Controller
         $promotionPercentage = $request->input('promotionPercentage');
         $startDate = $request->input('startDate');
         $endDate = $request->input('endDate');
-/*        print($promotion. '<br>');
+        /*        print($promotion. '<br>');
         print($promotion[0]->promotion_code. '<br>');
         print($promotion[0]->promotion_name. '<br>');
         print($promotion[0]->discount. '<br>');
@@ -91,35 +91,81 @@ class PromotionController extends Controller
         if ($promotionName != null && $promotionName != $promotion[0]->promotion_name) {
             //print('Update name' . '<br>');
             DB::table('promotions')
-            ->where('promotion_id', $promotion_id)
-            ->update([
-                'promotion_name' => $promotionName,
-            ]);
+                ->where('promotion_id', $promotion_id)
+                ->update([
+                    'promotion_name' => $promotionName,
+                ]);
         }
         if ($promotionPercentage != null && $promotionPercentage != $promotion[0]->discount) {
             //print('Update percentage' . '<br>');
             DB::table('promotions')
-            ->where('promotion_id', $promotion_id)
-            ->update([
-                'discount' => $promotionPercentage,
-            ]);
+                ->where('promotion_id', $promotion_id)
+                ->update([
+                    'discount' => $promotionPercentage,
+                ]);
         }
         if ($startDate != null && $startDate != $promotion[0]->date_start) {
             //print('Update start date' . '<br>');
             DB::table('promotions')
-            ->where('promotion_id', $promotion_id)
-            ->update([
-                'date_start' => $startDate,
-            ]);
+                ->where('promotion_id', $promotion_id)
+                ->update([
+                    'date_start' => $startDate,
+                ]);
         }
         if ($endDate != null && $endDate != $promotion[0]->date_end) {
             //print('Update stop date' . '<br>');
             DB::table('promotions')
-            ->where('promotion_id', $promotion_id)
-            ->update([
-                'date_end' => $endDate,
-            ]);
+                ->where('promotion_id', $promotion_id)
+                ->update([
+                    'date_end' => $endDate,
+                ]);
         }
         return redirect()->route('management.admin.promotion');
+    }
+
+    public function getAllPromotion()
+    {
+        $promotions = promotion::select(
+            'promotion_id',
+            'promotion_code',
+            'promotion_name',
+            'discount',
+            DB::raw("DATE_FORMAT(date_start, '%d-%m-%Y') as dateStart"),
+            DB::raw("DATE_FORMAT(date_end, '%d-%m-%Y') as dateEnd")
+        )
+
+            ->orderBy('date_start', 'desc')->get();
+
+        return response()->json(['allPromotions' => $promotions]);
+    }
+
+    public function getPromotionFromSearch()
+    {
+        $searchType = Route::current()->parameter('searchType');
+        $search = Route::current()->parameter('search');
+        if ($searchType == 0) {
+            $promotions = promotion::select(
+                'promotion_id',
+                'promotion_code',
+                'promotion_name',
+                'discount',
+                DB::raw("DATE_FORMAT(date_start, '%d-%m-%Y') as dateStart"),
+                DB::raw("DATE_FORMAT(date_end, '%d-%m-%Y') as dateEnd")
+            )
+                ->where('promotion_name', 'LIKE', "%$search%")
+                ->orderBy('date_start', 'desc')->get();
+        } else {
+            $promotions = promotion::select(
+                'promotion_id',
+                'promotion_code',
+                'promotion_name',
+                'discount',
+                DB::raw("DATE_FORMAT(date_start, '%d-%m-%Y') as dateStart"),
+                DB::raw("DATE_FORMAT(date_end, '%d-%m-%Y') as dateEnd")
+            )
+                ->where('promotion_code', 'LIKE', "%$search%")
+                ->orderBy('date_start', 'desc')->get();
+        }
+        return response()->json(['allPromotions' => $promotions]);
     }
 }

@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Table;
+
 //ลบ ; จาก extension=gd ใน php8.1.0\php.ini
 //คำสั่งค้นหา php --ini
 //เมื่อทำเสร็จก็  restar
 //composer require simplesoftwareio/simple-qrcode เพื่อลง libery
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+use App\Models\menu;
 
 class UserController extends Controller
 {
@@ -53,10 +57,13 @@ class UserController extends Controller
         echo "<img src='" . asset("images/QrCode/$fileName") . "' alt='QR Code'>";
     }
 
-    public function goHomepageWithGetQandT($table_name, $table_password)
+    public function generateQrCode()
     {
-        $url = url()->current();
-
+        $table_name = Route::current()->parameter('table_name');
+        $table_password = Route::current()->parameter('table_password');
+        //$url = url()->current();
+        $url = url()->to("/order/Table={$table_name},PassWord={$table_password}");
+        //print($url);
         // Generate the QR code
         $qrCode = QrCode::format('png')->size(300)->generate($url);
 
@@ -87,7 +94,8 @@ class UserController extends Controller
         $date = date("Y-m-d H:i:s");
         // Define the text lines to add at the bottom
         $textLines = [
-            "โต๊ะหมายเลข: $table_name",
+            "หมายเลขโต๊ะ: $table_name",
+            "รหัสผ่านโต๊ะ: $table_password",
             "วัน เวลา: $date",
         ];
 
@@ -171,5 +179,323 @@ class UserController extends Controller
         } else {
             print("error password");
         }
+    }
+
+    public function getAllMenu()
+    {
+        $category = request('category');
+        $search = trim(request('name'));
+        /*if ($category == 0 && $search != null) {
+            $allMenu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->where('mmenus.menu_name', 'LIKE', "%$search%")
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        }else if ($category != 0 && $search == null) {
+            $allMenu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->where('menu_categories.menu_category_id', $category)
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        } else {
+            $allMenu = Menu::select([
+                'menus.menu_id as menu_id',
+                'menus.menu_name as menu_name',
+                'menus.menu_image as menu_image',
+                'menus.menu_status as menu_status',
+                'menu_categories.menu_category_name as menu_category_name',
+                'ph.price as price',
+            ])
+                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                    $join->on('menus.menu_id', '=', 'ph.menu_id');
+                })
+                ->orderBy('menu_category_name', 'asc')
+                ->orderBy('menus.menu_id', 'asc')
+                ->get();
+        }*/
+
+        $allMenu = Menu::select([
+            'menus.menu_id as menu_id',
+            'menus.menu_name as menu_name',
+            'menus.menu_image as menu_image',
+            'menus.menu_status as menu_status',
+            'menu_categories.menu_category_name as menu_category_name',
+            'ph.price as price',
+        ])
+            ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
+            ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                $join->on('menus.menu_id', '=', 'ph.menu_id');
+            })
+            ->orderBy('menu_category_name', 'asc')
+            ->orderBy('menus.menu_id', 'asc');
+
+
+        if ($search) {
+            $allMenu->where('menus.menu_name', 'LIKE', "%$search%");
+        } elseif ($category > 0 && !$search) {
+            $allMenu->where('menu_categories.menu_category_id', $category);
+        }
+
+        // Execute the query and get the result
+        $allMenu = $allMenu->get();
+
+        return response()->json(['allMenus' => $allMenu]);
+    }
+
+    public function getPutMenuToBasket()
+    {
+        $menuId = request('menuId');
+        $menuName = request('menuName');
+        $menuAmount = request('menuAmount');
+        $menuImage = request('menuImage');
+        $existingItem = false;
+        //$basket = [['id' => $menuId, 'amount' => $menuAmount]];
+
+        // Initialize the basket if it doesn't exist
+        if (!session('basket')) {
+            session(['basket' => []]);
+        }
+
+        $basket = session('basket');
+
+        // Check if the menu ID already exists in the basket
+        foreach ($basket as &$item) {
+            if ($menuId == $item['id']) {
+                $item['amount'] += $menuAmount;
+                $existingItem = true;
+                break;
+            }
+        }
+
+        if (!$existingItem) {
+            $basket[] = ['id' => $menuId, 'name' => $menuName, 'image' => $menuImage, 'amount' => $menuAmount];
+        }
+
+        session(['basket' => $basket]);
+
+        /*return response()->json(['menuIdByGet' => $menuId,'menuAmountByGet' => $menuAmount]);*/
+        return response()->json(['basket' => $basket]);
+    }
+
+    public function clearSession()
+    {
+        session()->forget(['basket']);
+    }
+
+    public function checkBasket()
+    {
+        $basket = false;
+
+        if (session('basket')) {
+            $basket = true;
+        }
+        return response()->json(['basket' => $basket]);
+    }
+
+    public function renderBasket()
+    {
+        $basket = session('basket');
+        return response()->json(['basket' => $basket]);
+    }
+
+    public function checkOrderList()
+    {
+        $nameTable = request('nameTable');
+        $orderList = false;
+
+        $order = DB::table('food_orders as fo')
+            ->select([
+                'fo.food_order_id as food_order_id',
+                't.table_name as table_name',
+                'm.menu_name as menu_name',
+                'm.menu_image as menu_image',
+                'fo.food_amount as food_amount',
+                'fo.food_order_status as food_order_status'
+            ])
+            ->leftJoin('tables as t', function ($join) {
+                $join->on('fo.table_id', '=', 't.table_id');
+            })
+            ->leftJoin('menus as m', function ($join) {
+                $join->on('fo.menu_id', '=', 'm.menu_id');
+            })
+            ->where('t.table_name', $nameTable)
+            ->whereBetween('fo.food_order_status', [1, 4])
+            ->orderBy(DB::raw("CASE
+                WHEN fo.food_order_status = 'รอชำระเงิน' THEN 1
+                WHEN fo.food_order_status = 'สั่ง' THEN 2
+                WHEN fo.food_order_status = 'กำลังปรุง' THEN 3
+                WHEN fo.food_order_status = 'เสริฟแล้ว' THEN 4
+                ELSE 5
+            END"))
+            ->get();
+
+        if (count($order) > 0) {
+            $orderList = true;
+        }
+        return response()->json(['orderList' => $orderList]);
+    }
+
+    public function renderOrderList()
+    {
+        $nameTable = request('nameTable');
+
+        $order = DB::table('food_orders as fo')
+            ->select([
+                'fo.food_order_id as food_order_id',
+                't.table_name as table_name',
+                'm.menu_name as menu_name',
+                'm.menu_image as menu_image',
+                'fo.food_amount as food_amount',
+                'fo.food_order_status as food_order_status',
+                'ph.price as price'
+            ])
+            ->leftJoin('tables as t', function ($join) {
+                $join->on('fo.table_id', '=', 't.table_id');
+            })
+            ->leftJoin('menus as m', function ($join) {
+                $join->on('fo.menu_id', '=', 'm.menu_id');
+            })
+            ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                $join->on('m.menu_id', '=', 'ph.menu_id');
+            })
+            ->where('t.table_name', $nameTable)
+            ->whereBetween('fo.food_order_status', [1, 4])
+            ->orderBy(DB::raw("CASE
+            WHEN fo.food_order_status = 'รอชำระเงิน' THEN 1
+            WHEN fo.food_order_status = 'สั่ง' THEN 2
+            WHEN fo.food_order_status = 'กำลังปรุง' THEN 3
+            WHEN fo.food_order_status = 'เสริฟแล้ว' THEN 4
+            ELSE 5
+        END"))
+            ->get();
+
+        $newOrder = [];
+        if (count($order) > 0) {
+            foreach ($order as $item) {
+                $menuName = $item->menu_name;
+                $foodAmount = $item->food_amount;
+                $foodStatus = $item->food_order_status;
+                $foodImage = $item->menu_image;
+                $foodPrice = $item->price;
+
+                // Check if an item with the same menu_name already exists in $newOrder
+                $existingItemIndex = array_search($menuName, array_column($newOrder, 'menu_name'));
+
+                if ($existingItemIndex !== false) {
+                    // If the item exists, update its food_amount
+                    $newOrder[$existingItemIndex]['food_amount'] += $foodAmount;
+                } else {
+                    // If the item doesn't exist, add it to $newOrder
+                    $orderItem = [
+                        'menu_name' => $menuName,
+                        'food_amount' => $foodAmount,
+                        'food_order_status' => $foodStatus,
+                        'menu_image' => $foodImage,
+                        'menu_price' => $foodPrice
+                    ];
+
+                    $newOrder[] = $orderItem;
+                }
+            }
+        }
+        return response()->json(['orderList' => $newOrder]);
+    }
+
+    public function minusAmountBasket()
+    {
+        $menuName = request('menuName');
+        $menuAmount = request('menuAmount');
+        $basket = session('basket');
+        foreach ($basket as &$item) {
+            if ($menuName == $item['name']) {
+                $item['amount'] = $menuAmount;
+                break;
+            }
+        }
+        session(['basket' => $basket]);
+    }
+
+    public function addAmountBasket()
+    {
+        $menuName = request('menuName');
+        $menuAmount = request('menuAmount');
+        $basket = session('basket');
+        foreach ($basket as &$item) {
+            if ($menuName == $item['name']) {
+                $item['amount'] = $menuAmount;
+                break;
+            }
+        }
+        session(['basket' => $basket]);
+    }
+
+    public function removeBasket()
+    {
+        $menuName = request('menuName');
+        $oleBasket = session('basket');
+        $basket = [];
+        foreach ($oleBasket as &$item) {
+            if ($menuName == $item['name']) {
+
+                continue;
+            } else {
+                $basket[] = $item;
+            }
+        }
+
+        session(['basket' => $basket]);
+    }
+
+    public function oderMenus()
+    {
+        $tableId = request('tableId');
+        $basket = session('basket');
+
+        foreach ($basket as &$item) {
+            $lastFoodOrdersId = DB::table('food_orders')->orderBy('food_order_id', 'desc')->first();
+            $newFoodOrdersId = null;
+
+            if ($lastFoodOrdersId) {
+                // If records exist, increment the table_id by 1
+                $newFoodOrdersId  = $lastFoodOrdersId->food_order_id + 1;
+            } else {
+                // If no records exist, set an initial value (e.g., 1)
+                $newFoodOrdersId  = 1;
+            }
+
+            DB::table('food_orders')->insert([
+                'food_order_id' => $newFoodOrdersId,
+                'table_id' => $tableId,
+                'menu_id' => $item['id'],
+                'food_amount' => $item['amount'],
+                'food_order_status' => 1,
+                'date_order' => DB::raw('CURRENT_TIMESTAMP')
+            ]);
+
+        }
+
     }
 }

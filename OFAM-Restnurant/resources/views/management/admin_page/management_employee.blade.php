@@ -1,53 +1,3 @@
-<?php
-
-use App\Models\restaurantInfo;
-
-$restaurantlogo = restaurantInfo::value('restaurant_logo');
-
-use App\Models\Menu; // Adjust the model namespace as needed
-use App\Models\menu_category; // Adjust the model namespace as needed
-use Illuminate\Support\Facades\DB;
-
-$menus = Menu::select([
-    'menus.menu_id',
-    'menus.menu_name',
-    'menus.menu_image',
-    'menus.menu_status',
-    'menu_categories.menu_category_name',
-    'ph.price',
-])
-    ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
-    ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
-        $join->on('menus.menu_id', '=', 'ph.menu_id');
-    })
-    ->where('menus.menu_status', 1)
-    ->orderBy('menus.menu_id', 'asc')
-    ->get();
-/*
-    SELECT
-    m.menu_id,
-    m.menu_name,
-    m.menu_image,
-    m.menu_status,
-    mc.menu_category_name,
-    ph.price
-FROM
-    `menus` AS m
-INNER JOIN `menu_categories` AS mc
-ON
-    m.menu_category_id = mc.menu_category_id
-INNER JOIN (SELECT * FROM `price_histories` WHERE `date_end` IS NULL) AS ph
-ON
-    m.menu_id = ph.menu_id
-WHERE
-    1
-ORDER BY
-    `menu_id` ASC;
-    */
-
-$menu_categories = menu_category::all();
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -283,9 +233,9 @@ $menu_categories = menu_category::all();
                 <ul class="container navbar-nav me-auto">
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.home')}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ข้อมูลร้าน</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.table')}}"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">ข้อมูลโต๊ะ</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">ข้อมูลอาหาร</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.food')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">ข้อมูลอาหาร</a></li>
                     <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.promotion')}}"><img class="icon-size spade-bar" src="{{ asset('images/discount.png') }}" alt="">ข้อมูลโปรโมชั่น</a></li>
-                    <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.employee')}}"><img class="icon-size spade-bar" src="{{ asset('images/owner.png') }}" alt="">ข้อมูลพนักงาน</a></li>
+                    <li class="nav-item text-center"><a class="nav-link custom-nav-link-active  justify-content-center" href="{{ route('management.admin.employee')}}"><img class="icon-size spade-bar" src="{{ asset('images/owner.png') }}" alt="">ข้อมูลพนักงาน</a></li>
                 </ul>
             </div>
         </div>
@@ -305,13 +255,8 @@ $menu_categories = menu_category::all();
             <div class="collapse navbar-collapse pad" id="sub_add">
                 <ul class="container navbar-nav me-auto">
                     <ul class="container navbar-nav me-auto">
-                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-green justify-content-center" href="{{ route('management.admin.food.category')}}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">เพิ่มหมวดหมู่</a></li>
-                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-green justify-content-center" href="{{ route('management.admin.food.menu')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">เพิ่มรายการอาหาร</a></li>
+                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-green justify-content-center" href="{{ route('management.admin.employee.add')}}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">เพิ่มหมวดหมู่</a></li>
                     </ul>
-                    <!--
-                    <ul class="container justify-content-end navbar-nav me-auto">
-                        <li class="nav-item text-center"><a class="nav-link custom-nav-link  justify-content-center" href="{{ route('management.admin.home')}}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">ออก</a></li>
-                    </ul>-->
                 </ul>
             </div>
         </div>
@@ -319,55 +264,30 @@ $menu_categories = menu_category::all();
     <div class="container">
         <div class="row mt-3">
             <div class="col-lg-12">
-                <h4 class="text-center">จัดข้อมูลอาหาร</h4>
+                <h4 class="text-center">ข้อมูลพนักงาน</h4>
                 <br>
                 <div class="container">
                     <div class="row mt-3">
                         <div class="col-lg-12">
-                            <label for="selectSearch">หมวดหมู่</label>
+                            <label for="selectSearch">ค้นหาด้วย</label>
                             <select id="inputSelected" name="selectSearch">
-                                <option value="0">ทั้งหมด</option>
-                                @foreach ($menu_categories as $menu_categorie)
-                                <option value="{{ $menu_categorie->menu_category_id }}">{{ $menu_categorie->menu_category_name }}</option>
-                                @endforeach
-                                <!--<option value="name">ชื่อโต๊ะ</option>
-                                <option value="status">สถานะโต๊ะ</option>-->
+                                <option value="0">รหัสพนักงาน</option>
+                                <option value="1">ชื่อ</option>
+                                <option value="2">นามสกุล</option>
                             </select><br><br>
                             <label for="inputSearch">ค้นหา</label>
-                            <input type="text" id="searchInput" name="inputSearch" placeholder="ชื่อเมนู"><br>
+                            <input type="text" id="searchInput" name="inputSearch"><br>
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>หมวดหมู่</th>
-                                        <th>เมนู</th>
-                                        <th>สถานะ</th>
-                                        <th>แก้ไข</th>
+                                        <th>รหัสพนักงาน</th>
+                                        <th>รูป</th>
+                                        <th>ชื่อ</th>
+                                        <th>ข้อมูล</th>
                                         <!-- Add more table headers for other columns as needed -->
                                     </tr>
                                 </thead>
-
-                                <!--<tbody id="table-body">
-                                    @foreach ($menus as $menu)
-                                    <tr>
-                                        <td>{{ $menu->menu_category_name }}</td>
-                                        <td>ชื่อ:{{ $menu->menu_name }}<br>
-                                        <img class="menu-size" src="{{ asset('images/menu/' . $menu->menu_image ) }}" alt=""><br>
-                                        ราคา:{{ $menu->price }}
-                                        </td>
-                                        <td>{{ $menu->menu_status }}</td>
-                                        <td>
-
-                                                <ul class="container navbar-nav me-auto">
-                                                    <ul class="container navbar-nav me-auto">
-                                                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="{{ route('management.admin.food.menu.edit', ['menu_id' => $menu->menu_id])}}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไข</a></li>
-                                                    </ul>
-                                                </ul>
-
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>-->
-                                <tbody id="table-menu">
+                                <tbody id="table-employees">
                                 </tbody>
                                 <br>
                             </table>
@@ -394,36 +314,9 @@ $menu_categories = menu_category::all();
         return selectedValue; // Return the selected value
     }
 
-    function changeMenuStatus(id, value) {
-        // You can use the 'value' parameter to determine which radio button was clicked.
-        /*console.log("id "+id);
-        if (value === 1) {
-            // Code to execute when the first radio button is clicked
-            console.log("ยกเลิกให้บริการ");
-        } else if (value === 2) {
-            // Code to execute when the second radio button is clicked
-            console.log("พร้อมให้บริการ");
-        } else if (value === 3) {
-            // Code to execute when the second radio button is clicked
-            console.log("หมด");
-        }*/
-        var confirmation = confirm('คุณต้องการเปลี่ยนสถานะเมนูใช่หรือไม่');
-        if (confirmation) {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/food/menu_id=' + id + ',new_status=' + value,
-                success: function(response) {},
-                error: function(error) {}
-            });
-        }
-    }
-
     $(document).ready(function() {
         let currentPage = 1 // Track the current page
         const itemsPerPage = 5 // Number of items to display per page
-
-
-
 
         //get data from text search
         $('#searchInput').on('keyup', function() {
@@ -437,58 +330,44 @@ $menu_categories = menu_category::all();
 
 
 
-        function getAllMenu(selectedSearchValue) {
+        function getAllEmployee() {
             $.ajax({
                 type: 'GET',
-                url: '/management-admin/food/get-all-food,category=' + selectedSearchValue,
+                url: '/management-admin/employee/get-all-employee',
                 success: function(response) {
                     // Assuming response.tables_status is an array of objects
-                    const totalMenu = response.allMenu.length
-                    if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
+                    const totalEmployees = response.allEmployees.length
+                    if (currentPage > Math.ceil(totalEmployees / itemsPerPage)) {
                         currentPage = 1;
                     }
                     const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalEmployees);
 
-                    let tableData = response.allMenu
+                    let tableData = response.allEmployees
                         .slice(startIndex, endIndex)
-                        .map(menu => {
+                        .map(employee => {
                             return `
                             <tr>
-                        <td>${menu.menu_category_name}</td>
-                        <td>ชื่อ:${menu.menu_name }<br>
-                            <img class="menu-size" src="/images/menu/${menu.menu_image}" alt=""><br>
-                            ราคา:${menu.price}
+                        <td>${employee.employees_id}</td>
+                        <td>
+                            <img class="menu-size" src="/images/employees/${employee.employees_picture}" alt=""><br>
                         </td>
                         <td>
-                        <p ${menu.menu_status == 'ยกเลิกให้บริการ' ? 'class="bg-danger text-white" style="text-align: center;"' : menu.menu_status == 'พร้อมให้บริการ' ? 'class="bg-success text-white" style="text-align: center;"' : 'class="bg-dark text-white" style="text-align: center;"'} >${menu.menu_status}</p>
-                        <!--${menu.menu_status}--><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},1)">
-                        ยกเลิกให้บริการ
-                        </label><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},2)">
-                        พร้อมให้บริการ
-                        </label><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},3)">
-                        หมด
-                        </label>
+                            ${employee.first_name} ${employee.last_name}
                         </td>
                         <td>
                             <ul class="container navbar-nav me-auto">
                                 <ul class="container navbar-nav me-auto">
-                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/food/menu/edit/MenuId=${menu.menu_id}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไข</a></li>
+                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/employee/view/employeeId=${employee.employees_id}"><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">รายละเอียด</a></li>
                                 </ul>
                             </ul>
                         </td>
                     </tr>`
                         })
 
-                    $('#table-menu').html(tableData.join('')) // Update the content
+                    $('#table-employees').html(tableData.join('')) // Update the content
 
-                    const totalPages = Math.ceil(totalMenu / itemsPerPage);
+                    const totalPages = Math.ceil(totalEmployees / itemsPerPage);
 
                     $('#pagination').empty();
                     generatePagination(totalPages)
@@ -499,20 +378,20 @@ $menu_categories = menu_category::all();
             })
         }
 
-        function getSearchFood(selectedSearchValue, inputSearchValue) {
+        function getSearchEmployee(selectedSearchValue, inputSearchValue) {
             $.ajax({
                 type: 'GET',
-                url: '/management-admin/food/get-all-food,category=' + selectedSearchValue + '/search=' + inputSearchValue,
+                url: '/management-admin/employee/get-all-employee,category=' + selectedSearchValue + '/search=' + inputSearchValue,
                 success: function(response) {
                     // Assuming response.tables_status is an array of objects
-                    const totalMenu = response.allMenu.length
-                    if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
+                    const totalEmployees = response.allEmployees.length
+                    if (currentPage > Math.ceil(totalEmployees / itemsPerPage)) {
                         currentPage = 1;
                     }
                     const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalEmployees);
                     let tableData;
-                    if (totalMenu === 0) {
+                    if (totalEmployees === 0) {
                         tableData = `
                         <tr>
                             <td colspan="4">
@@ -520,44 +399,31 @@ $menu_categories = menu_category::all();
                             </td>
                         </tr>`;
                     } else {
-                        tableData = response.allMenu
+                        tableData = response.allEmployees
                             .slice(startIndex, endIndex)
-                            .map(menu => {
+                            .map(employee => {
                                 return `
-                            <tr>
-                        <td>${menu.menu_category_name}</td>
-                        <td>ชื่อ:${menu.menu_name }<br>
-                            <img class="menu-size" src="/images/menu/${menu.menu_image}" alt=""><br>
-                            ราคา:${menu.price}
+                                <tr>
+                        <td>${employee.employees_id}</td>
+                        <td>
+                            <img class="menu-size" src="/images/employees/${employee.employees_picture}" alt=""><br>
                         </td>
                         <td>
-                        <p ${menu.menu_status == 'ยกเลิกให้บริการ' ? 'class="bg-danger text-white" style="text-align: center;"' : menu.menu_status == 'พร้อมให้บริการ' ? 'class="bg-success text-white" style="text-align: center;"' : 'class="bg-dark text-white" style="text-align: center;"'} >${menu.menu_status}</p>
-                        <!--${menu.menu_status}--><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},1)">
-                        ยกเลิกให้บริการ
-                        </label><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},2)">
-                        พร้อมให้บริการ
-                        </label><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},3)">
-                        หมด
-                        </label></td>
+                            ${employee.first_name} ${employee.last_name}
+                        </td>
                         <td>
                             <ul class="container navbar-nav me-auto">
                                 <ul class="container navbar-nav me-auto">
-                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/food/menu/edit/MenuId=${menu.menu_id}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไข</a></li>
+                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/employee/view/employeeId=${employee.employees_id}"  ><img class="icon-size spade-bar" src="{{ asset('images/document.png') }}" alt="">รายละเอียด</a></li>
                                 </ul>
                             </ul>
                         </td>
                     </tr>`
                             }).join('');
                     }
-                    $('#table-menu').html(tableData) // Update the content
+                    $('#table-employees').html(tableData) // Update the content
 
-                    const totalPages = Math.ceil(totalMenu / itemsPerPage);
+                    const totalPages = Math.ceil(totalEmployees / itemsPerPage);
                     $('#pagination').empty();
                     generatePaginationSearch(totalPages)
 
@@ -570,12 +436,12 @@ $menu_categories = menu_category::all();
 
         $(document).on('click', '.page-btn-all', function() {
             currentPage = parseInt($(this).data('page'))
-            getAllMenu(selectedSearchValue);
+            getAllEmployee();
         })
 
         $(document).on('click', '.page-btn-Search', function() {
             currentPage = parseInt($(this).data('page'))
-            getSearchFood(selectedSearchValue, inputSearchValue);
+            getSearchEmployee(selectedSearchValue, inputSearchValue);
         })
 
         function generatePagination(totalPages) {
@@ -668,7 +534,7 @@ $menu_categories = menu_category::all();
 
 
 
-        getAllMenu(selectedSearchValue);
+        getAllEmployee();
 
         //loop call read data 3sec
         setInterval(function() {
@@ -676,9 +542,9 @@ $menu_categories = menu_category::all();
             /*console.log("selectedSearchValue: " + selectedSearchValue);
             console.log("inputSearchValue: " + inputSearchValue);*/
             if (inputSearchValue == null || inputSearchValue === '') {
-                getAllMenu(selectedSearchValue);
+                getAllEmployee();
             } else {
-                getSearchFood(selectedSearchValue, inputSearchValue);
+                getSearchEmployee(selectedSearchValue, inputSearchValue);
             }
         }, 2000)
 

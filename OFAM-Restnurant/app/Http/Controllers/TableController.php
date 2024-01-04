@@ -22,7 +22,7 @@ class TableController extends Controller
     public function getAllTables()
     {
         $allTables = DB::table('tables as t')
-            ->select('t.*', 'f1.table_id', 'f1.food_order_status as table_order_status')
+            ->select('t.*', 'f1.table_id as t_id', 'f1.food_order_status as table_order_status')
             ->leftJoin(DB::raw('(SELECT
         table_id,
         MIN(
@@ -43,6 +43,7 @@ class TableController extends Controller
         WHEN f1.food_order_status = 3 THEN 4
         ELSE 5
     END"))
+            ->orderBy('table_id', 'asc')
             ->get();
         /*
     SELECT

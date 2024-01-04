@@ -187,4 +187,24 @@ class ManagementAdminRoute extends Controller
             return view('management/admin_page/management_employee_edit');
         }
     }
+
+    public function goBillpageWithGet() {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_bill');
+        }
+    }
+
+    public function goTotalSummarypageWithGet() {
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_total_summary');
+        }
+    }
 }

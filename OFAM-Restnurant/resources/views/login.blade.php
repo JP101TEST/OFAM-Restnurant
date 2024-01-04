@@ -43,7 +43,7 @@
                                     </div>
                                     @endif
                                 </div><br>
-                                <button class="btn btn-primary btn-lg btn-block" type="submit">Submit</button>
+                                <button class="btn btn-primary btn-lg btn-block" type="submit">เข้าสู่ระบบ</button>
                             </form>
                             {{ session()->forget(['errorUser', 'errorPassword', 'user.ole', 'password.ole']) }}
                             </sbpro-login-form>

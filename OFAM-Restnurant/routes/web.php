@@ -13,6 +13,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MenuOrderController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\BillController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,10 +38,12 @@ Route::get('/management/order/table_id={table_id}', [TableController::class, 'go
 Route::get('/management/order/table_id={table_id}/get-all-menu/show={show}', [MenuOrderController::class, 'getAllMenu']);
 Route::get('/management/order/order_id={order_id}/delete', [MenuOrderController::class, 'deleteFoodOrder']);
 Route::get('/management/order/order_id={order_id},status={status}/change_status', [MenuOrderController::class, 'changeStatusFoodOrder']);
+Route::get('/management/order/payment/table_id={table_id}', [PaymentController::class, 'goPaymentPage'])->name('paymentPage');
+
+Route::get('/management/order/payment', [PaymentController::class, 'orderPayment']);
 
 Route::get('/management/table/get-all-tables', [TableController::class, 'getAllTables'])->name('get.updated.tables');
 Route::get('/management/table/category={category}/search={search}', [TableController::class, 'getTablesFromSearch'])->name('get.updated.tables.input');
-
 
 Route::get('/management-admin', [ManagementAdminRoute::class, 'goHomepageWithGet'])->name('management.admin.home');
 Route::get('/management-admin-edit/info', [ManagementAdminRoute::class, 'goHomepageEditWithGet'])->name('management.admin.home.edit');
@@ -83,8 +87,16 @@ Route::get('/management-admin/employee/view/employeeId={employee_id}', [Manageme
 Route::get('/management-admin/employee/edit/employeeId={employee_id}', [ManagementAdminRoute::class, 'goEmployeeEditpageWithGet']);
 Route::post('/management-admin/employee/edit/employeeId={employee_id}', [EmployeeController::class, 'editEmployee'])->name('management.admin.employee.edit.postData');
 
-Route::get('/order/generateQRCode/Table={table_name},PassWord={table_password}', [UserController::class, 'generateQrCode'])->name('user.main');
-Route::get('/order/Table={table_name},PassWord={table_password}', [ManagementUserRoute::class, 'goUserHomepage'])->name('user.main');
+Route::get('/management-admin/bill', [ManagementAdminRoute::class, 'goBillpageWithGet'])->name('management.admin.bill');
+Route::get('/management-admin/bill/get-all-bill', [BillController::class, 'getAllBill']);
+Route::get('/management-admin/bill/get-all-menu-bill', [BillController::class, 'getAllMenuBill']);
+Route::get('/management-admin/bill/change', [BillController::class, 'change']);
+
+Route::get('/management-admin/total-summary', [ManagementAdminRoute::class, 'goTotalSummarypageWithGet'])->name('management.admin.total.summary');
+
+
+Route::get('/order/generateQRCode/Table={table_name},PassWord={table_password}', [UserController::class, 'generateQrCode']);
+Route::get('/order/Table={table_name},PassWord={table_password}', [ManagementUserRoute::class, 'goUserHomepage']);
 
 Route::get('/user/table/get-all-menu', [UserController::class, 'getAllMenu']);
 Route::get('/user/table/putMenuToBasket', [UserController::class, 'getPutMenuToBasket']);
@@ -97,5 +109,8 @@ Route::get('/user/table/minusAmountBasket',  [UserController::class, 'minusAmoun
 Route::get('/user/table/addAmountBasket',  [UserController::class, 'addAmountBasket']);
 Route::get('/user/table/removeBasket',  [UserController::class, 'removeBasket']);
 Route::get('/user/table/oderMenus',  [UserController::class, 'oderMenus']);
+Route::get('/user/table/checkPaymentStatus',  [UserController::class, 'checkPaymentStatus']);
+Route::get('/user/table/changeOrderToPayment',  [UserController::class, 'changeOrderToPayment']);
+Route::get('/user/table/checkPassword',  [UserController::class, 'checkPassword']);
 
 Route::get('/generate-random-number', [TableController::class, 'generateRandomNumber']);

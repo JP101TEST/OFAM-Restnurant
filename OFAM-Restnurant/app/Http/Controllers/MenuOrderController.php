@@ -143,4 +143,6 @@ class MenuOrderController extends Controller
             ->where('food_order_id', $order_id)
             ->update(['food_order_status' => $order_status]);
     }
+
+
 }

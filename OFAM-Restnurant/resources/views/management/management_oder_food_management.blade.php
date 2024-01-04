@@ -253,7 +253,7 @@ $food_orders = DB::table('food_orders')
             <button class="navbar-toggler w-100" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent_sub" aria-controls="navbarSupportedContent_sub" aria-expanded="false" aria-label="Toggle navigation">
                 <div class="d-flex flex-row justify-content-between align-items-center">
                     <div class="align-items-center">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">
+                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/go-back-arrow.png') }}" alt="">
                         <!--เมนูการจัดการ-->
                     </div>
                     <span class="navbar-toggler-icon"></span>
@@ -305,7 +305,7 @@ $food_orders = DB::table('food_orders')
             </div>
             <div class="col-lg-12 d-flex justify-content-between">
                 <div class="col navbar-nav me-auto width-150">
-                    <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');" disabled>
+                    <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="pymentOrder()" disabled>
                         <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
                         ชำระเงิน
                     </button>
@@ -342,18 +342,27 @@ $food_orders = DB::table('food_orders')
             $.ajax({
                 type: 'GET',
                 url: '/management/order/order_id=' + id + ',status=' + value + '/change_status',
-                success: function(response) {},
+                success: function(response) {getAllMenu();},
                 error: function(error) {}
             });
         }
     }
 
-    function checkPay(s1,s2) {
-        if (s1 == 0 && s2 == 0) {
+    function checkPay(s1, s2,all) {
+        console.log(all);
+        if (s1 == 0 && s2 == 0 && all != 0) {
             submitButton.disabled = false;
         } else {
             submitButton.disabled = true;
         }
+    }
+
+    function pymentOrder() {
+        //var confirmation = confirm('คุณแน่ใจว่าต้องการชำระเงิน?');
+        var tableId = '{{$table_id}}';
+        //if (confirmation) {
+        window.location.href = '/management/order/payment/table_id=' + tableId;
+        //}
     }
 
     $(document).ready(function() {
@@ -385,7 +394,7 @@ $food_orders = DB::table('food_orders')
                     const status2 = response.statusCounts.status2;
                     /*console.log("สั่ง:" + status1);
                     console.log("กำลังปรุง:" + status2);*/
-                    checkPay(status1,status2);
+                    checkPay(status1, status2,response.allMenus.length);
                     if (currentPage > Math.ceil(totalMenus / itemsPerPage)) {
                         currentPage = 1;
                     }

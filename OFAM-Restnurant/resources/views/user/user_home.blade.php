@@ -79,6 +79,66 @@ $menu_categories = DB::table('menu_categories')->get();
 //     }
 // }
 
+/*
+$data = now();
+$formattedDate = $data->format('Ymd');
+$tableIdModified = 100 + $tableId[0]->table_id;
+$oderLoop = 100 + 5;
+$result = $tableIdModified . $formattedDate . $oderLoop; //10620231209105
+print($result . "<br>");
+for ($i = 0; $i < strlen($result); $i++) {
+    if ($i == 0) {
+        print( "|");
+    }
+    print($result[$i]);
+    if ($i < strlen($result)) {
+        print( "|");
+    }
+}
+print("<br>รับค่าบางส่วน<br>");
+$substring = substr($result, 0, 3);
+print($substring . "<br>");
+$substring = substr($result, 3, 8);
+print($substring . "<br>");
+$substring = substr($result, 11, 3);
+print($substring . "<br>");
+print("แปลงค่าที่รับเป็นตัวเลข<br>");
+$substring = substr($result, 12, 3);
+print("ค่าที่รับ:".$substring . "<br>");
+$intValue1 = intval($substring);
+print($intValue1 . "<br>");
+print("ค่าที่รับ:"."0501" . "<br>");
+$intValue1 = intval("0501");
+print($intValue1 . "<br>");
+
+print("<br>");
+$dataFromDatabase = '[1, 2, 3]';
+
+// Decode the JSON string to an array
+$dataArray = json_decode($dataFromDatabase, true);
+
+// Check if the decoding was successful
+if ($dataArray === null) {
+    // Handle the case where decoding failed
+    echo "Error decoding JSON string";
+} else {
+    // Use the $dataArray as needed
+    print_r($dataArray);
+    print("<br>");
+    foreach($dataArray as $dataArrayList){
+        print(intval($dataArrayList)."<br>");
+    }
+}*/
+
+/*
+$idJson = DB::table('example_table')->get();
+print($idJson[0]->id."<br>");
+print($idJson[1]->id."<br>");
+$decodedArray = json_decode($idJson[0]->multi_values, true);
+//print_r($decodedArray);
+foreach ($decodedArray as $value) {
+    print( $value ."<br>");
+}*/
 ?>
 
 <!DOCTYPE html>
@@ -221,6 +281,10 @@ $menu_categories = DB::table('menu_categories')->get();
 
         .icon-brightness {
             filter: brightness(0) invert(1);
+        }
+
+        .icon-brightness-empty {
+            filter: brightness(0.4) invert(0);
         }
 
         .spade-bar {
@@ -384,6 +448,8 @@ $menu_categories = DB::table('menu_categories')->get();
     <nav class="navbar navbar-expand-lg navbar-dark justify-content-center align-items-center" style="position: sticky;top: 10.2%;background-color: white;margin-left: 5%;margin-right: 5%;">
         <div class="tabs-container">
             <ul class="tabs-box" id="tabs">
+                <li class="tab" data-value="-1">ยอดนิยม</li>
+                <li class="tab-bar">|</li>
                 <li class="tab active" data-value="0">ทุกเมนู</li>
                 <li class="tab-bar">|</li>
                 @foreach ($menu_categories as $menu_categorie)
@@ -437,7 +503,7 @@ $menu_categories = DB::table('menu_categories')->get();
                 </div>
             </div>
             <div class="modal-footer" style="height: 60px;">
-                <button id="oderMenus" type="button" class="btn btn-success" disabled>สั่ง</button>
+                <button id="oderMenus" type="button" class="btn btn-primary" disabled>สั่ง</button>
             </div>
         </div>
     </div>
@@ -464,7 +530,7 @@ $menu_categories = DB::table('menu_categories')->get();
                 <div>
                     <p id="total-price">ยอดรวม:0฿</p>
                 </div>
-                <div><button id="payment" type="button" class="btn btn-info" style="color: #fff;" disabled>ชำระเงิน</button></div>
+                <div><button id="payment" type="button" class="btn btn-primary" style="color: #fff;" disabled>ชำระเงิน</button></div>
             </div>
         </div>
     </div>
@@ -484,32 +550,39 @@ $menu_categories = DB::table('menu_categories')->get();
     var inputSearchValue;
     let basket = false;
     let orderList = false;
+    let paymentStatus = false;
+    let paymentDone = false;
+
+    let intervalId;
 
     function showMenu(menuId, menuImage, menuName, menuPrice) {
         // Set the image variable
 
-        foodIdSelect = 0;
-        foodPriceSelect = 0
-        itemAmount = 0;
-        foodImage = null;
-        foodName = null;
-        checkItemAmount(itemAmount);
-        updateItemAmount();
+        if (paymentDone === false) { //paymentStatus
 
 
-        foodIdSelect = menuId;
-        foodName = menuName;
-        foodPriceSelect = menuPrice;
-        foodImage = menuImage;
+            foodIdSelect = 0;
+            foodPriceSelect = 0
+            itemAmount = 0;
+            foodImage = null;
+            foodName = null;
+            checkItemAmount(itemAmount);
+            updateItemAmount();
 
-        // Update the modal title with the clicked menu name
-        var modalTitle = $('#exampleModal').find('.modal-title');
-        modalTitle.html('<h1 class="modal-title fs-5" id="exampleModalLabel">' + menuName + '</h1>');
 
-        // Update the modal body with the clicked menu image
-        var modalBody = $('#exampleModal').find('.modal-body');
+            foodIdSelect = menuId;
+            foodName = menuName;
+            foodPriceSelect = menuPrice;
+            foodImage = menuImage;
 
-        modalBody.html(`
+            // Update the modal title with the clicked menu name
+            var modalTitle = $('#exampleModal').find('.modal-title');
+            modalTitle.html('<h1 class="modal-title fs-5" id="exampleModalLabel">' + menuName + '</h1>');
+
+            // Update the modal body with the clicked menu image
+            var modalBody = $('#exampleModal').find('.modal-body');
+
+            modalBody.html(`
         <div class="text-center" ><img class="image-show" style="border-radius: 10px;" src="{{ asset("images/menu/") }}/${foodImage}"></div>
         <br><div><H5>฿${menuPrice}</H5></div><br><br><br>
         <div class="text-center row" >
@@ -524,8 +597,48 @@ $menu_categories = DB::table('menu_categories')->get();
             </div>
         </div>
         `);
-        // Show the modal
+        } else {
+            var modalTitle = $('#exampleModal').find('.modal-title');
+            modalTitle.html('<h1 class="modal-title fs-5" id="exampleModalLabel">' + 'ไม่มีชื่อ' + '</h1>');
+
+            var modalBody = $('#exampleModal').find('.modal-body');
+
+            modalBody.html(`
+            <div class="text-center" >
+                ไม่สามารถสั่งอาหารได้หลังจากต้องการชำระเงิน
+            </div>
+            `);
+            itemAmountPrice.disabled = true;
+            $('#itemAmountPrice').text("เพิ่มไปยังตะกร้า - ฿" + (0));
+        }
         $('#exampleModal').modal('show');
+    }
+
+    function checkPassWordTable() {
+        let oderMenus = document.getElementById('oderMenus');
+        let itemAmountPrice = document.getElementById('itemAmountPrice');
+        if (paymentDone == false) {
+            $.ajax({
+                type: 'GET',
+                url: '/user/table/checkPassword',
+                data: {
+                    tableId: tableId,
+                    passWord: "{{$tableId[0]->tables_password}}"
+                },
+                success: function(response) {
+                    if (response.data == true) {
+                        paymentDone = true;
+                        clearInterval(intervalId);
+                        checkBasket();
+                        checkOrderList();
+                        checkPaymentStatus();
+                    }
+                },
+                error: function(error) {
+                    // Handle error if necessary
+                }
+            });
+        }
     }
 
     // Event listener for the "minus" button
@@ -534,7 +647,6 @@ $menu_categories = DB::table('menu_categories')->get();
             itemAmount--;
             checkItemAmount(itemAmount);
             updateItemAmount();
-
         }
     });
 
@@ -627,8 +739,7 @@ $menu_categories = DB::table('menu_categories')->get();
             data: {
                 tableId: tableId,
             },
-            success: function(response) {
-            },
+            success: function(response) {},
             error: function(error) {
                 // Handle error if necessary
             }
@@ -712,20 +823,28 @@ $menu_categories = DB::table('menu_categories')->get();
             url: '/user/table/checkBasket',
             success: function(response) {
                 basket = response.basket;
-                if (basket == false) {
+                if (paymentDone == false) {
+                    if (basket == false) {
+                        oderMenus.disabled = true;
+                        iconBasket.classList.remove('icon-size-active');
+                        iconBasket.classList.add('icon-size');
+                    } else if (basket == true) {
+                        oderMenus.disabled = false;
+                        iconBasket.classList.remove('icon-size');
+                        iconBasket.classList.add('icon-size-active');
+                    }
+                } else {
                     oderMenus.disabled = true;
                     iconBasket.classList.remove('icon-size-active');
                     iconBasket.classList.add('icon-size');
-                } else {
-                    oderMenus.disabled = false;
-                    iconBasket.classList.remove('icon-size');
-                    iconBasket.classList.add('icon-size-active');
                 }
+
             },
             error: function(error) {
                 // Handle error if necessary
             }
         });
+
         renderBasket();
     }
 
@@ -755,20 +874,55 @@ $menu_categories = DB::table('menu_categories')->get();
 
     }
 
-    function checkPayment(paymentStatus) {
-        if (paymentStatus == false) {
+    function checkPayment(paymentStatusInput) {
+        if (paymentStatusInput == false) {
             payment.disabled = true;
         } else {
             payment.disabled = false;
         }
     }
 
+    function checkPaymentStatus() {
+        $.ajax({
+            type: 'GET',
+            url: '/user/table/checkPaymentStatus',
+            data: {
+                nameTable: tableName,
+                passWord: "{{$tableId[0]->table_id}}",
+            },
+            success: function(response) {
+                paymentStatus = response.data;
+                /*console.log("response.data:" + response.data);
+                console.log("paymentStatus:" + paymentStatus);*/
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        })
+    }
+
     $(document).on('click', '#payment', function() {
         let confirmation = confirm('คุณต้องการชำระเงินใช่หรือไม่');
         if (confirmation) {
-            console.log("Payment done");
+            //console.log("Payment done");
+            $.ajax({
+                type: 'GET',
+                url: '/user/table/changeOrderToPayment',
+                data: {
+                    tableId: tableId,
+                },
+                success: function(response) {},
+                error: function(error) {
+                    // Handle error if necessary
+                }
+            });
+            paymentDone = true;
+            clearSession();
+            checkBasket();
+            checkOrderList();
         }
-        $('#exampleModal_1').modal('hide');
+        $('#exampleModal_2').modal('hide');
+
     });
 
     function renderBasket() {
@@ -825,12 +979,17 @@ $menu_categories = DB::table('menu_categories')->get();
                 //console.log(response.orderList);
                 if (response.orderList.length <= 0) {
                     allServe = false;
+                    tablePrice = 0;
+                    $('#total-price').html("ยอดรวม:" + tablePrice + " ฿");
                 }
                 if (response.orderList && response.orderList.length > 0) {
                     tableData = response.orderList.map(menu => {
                         tablePrice += (menu.menu_price * menu.food_amount);
                         if (menu.food_order_status != 'เสริฟแล้ว') {
                             allServe = false;
+                        }
+                        if (menu.food_order_status != 'รอชำระเงิน') {
+                            paymentStatus = false;
                         }
                         return `
                         <div class="tab-basket-text-normal">
@@ -857,12 +1016,12 @@ $menu_categories = DB::table('menu_categories')->get();
                     $('#table-all-orderlist').html('<p></p>');
                 }
                 checkPayment(allServe);
+                checkPaymentStatus();
             },
             error: function(error) {
                 // Handle error if necessary
             }
         });
-
     }
 
     $(document).ready(function() {
@@ -902,16 +1061,16 @@ $menu_categories = DB::table('menu_categories')->get();
                 success: function(response) {
                     // Assuming response.tables_status is an array of objects
                     let tableData;
-
+                    console.log(response.topMenus);
                     if (response.allMenus && response.allMenus.length > 0) {
                         tableData = response.allMenus.map(menu => {
                             return `
-                            <div class="mb-3 row" onclick="showMenu('${menu.menu_id}','${menu.menu_image}','${menu.menu_name}','${menu.price}')" >
+                            <div class="mb-3 row" ${ menu.menu_status != 'หมด' ? `onclick="showMenu('${menu.menu_id}','${menu.menu_image}','${menu.menu_name}','${menu.price}')"` :``} >
                                 <div class="col-auto d-flex align-items-center">
-                                    <img class="image spade-bar" style="border-radius: 10px;" src="{{ asset('images/menu/${menu.menu_image}' ) }}" alt="">
+                                    <img class="image spade-bar" style="border-radius: 10px;"  src="{{ asset('images/menu/${menu.menu_image}' ) }}" alt="">
                                     <div>
                                         <h4>${menu.menu_name}</h4>
-                                        <p>฿${menu.price}</p>
+                                        ${ menu.menu_status != 'หมด' ?`<p>฿${menu.price}</p>`:`<p style="color: red;">หมด</p>`}
                                     </div>
                                 </div>
                                 </div>
@@ -921,7 +1080,12 @@ $menu_categories = DB::table('menu_categories')->get();
                         });
                     } else {
                         // Handle the case when allMenus is null or an empty array
-                        tableData = ['<p>ไม่พบเมนูที่คุณค้นหา</p>'];
+                        if (category == -1 && response.topMenus.length > 0) {
+                            tableData = ['<p>ไม่พบเมนูใดถายในเดือนนี้ทำให้ไม่สามารถจัดเมนูยอดนิยมได้</p>'];
+                        } else {
+                            tableData = ['<p>ไม่พบเมนูที่คุณค้นหา</p>'];
+                        }
+
                     }
 
                     $('#table-all').html(tableData.join('')) // Update the content
@@ -938,13 +1102,18 @@ $menu_categories = DB::table('menu_categories')->get();
         getAllMenu();
         checkBasket();
         checkOrderList();
+        checkPaymentStatus();
 
-        function checkAll() {
+
+
+        /*function checkAll() {
             checkBasket();
             checkOrderList();
-        }
+        }*/
 
-        document.addEventListener('click', checkAll);
+        //document.addEventListener('click', checkAll);
+
+        intervalId = setInterval(checkPassWordTable, 3000);
 
     });
 </script>

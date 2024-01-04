@@ -294,6 +294,7 @@ class FoodMenuAdminController extends Controller
         $allPriceHistory = DB::table('price_histories')
             ->where('menu_id', $menu_id)
             ->orderBy('date_start', 'desc')
+            ->orderByRaw('CASE WHEN date_end IS NULL THEN 0 ELSE 1 END, date_end desc')
             ->get();
 
         return response()->json(['allPriceHistory' => $allPriceHistory]);

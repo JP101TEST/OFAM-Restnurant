@@ -219,7 +219,7 @@
         <div class="row mt-3">
             <div class="col-lg-12">
                 <br>
-                <h4 class="text-center">เพิ่มรายการอาหาร</h4>
+                <h4 class="text-center">เพิ่มโปรโมชั่น</h4>
                 <div class="mb-3 container">
                     <p>เพิ่ม:</p>
                 </div>

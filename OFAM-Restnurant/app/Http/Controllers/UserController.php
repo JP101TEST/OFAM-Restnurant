@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Table;
+use App\Models\food_order;
 
 //ลบ ; จาก extension=gd ใน php8.1.0\php.ini
 //คำสั่งค้นหา php --ini
@@ -91,16 +92,16 @@ class UserController extends Controller
         // Create a color for the text
         $textColor = imagecolorallocate($newImage, 0, 0, 0); // Black
 
-        $date = date("Y-m-d H:i:s");
+        // Define the text size (font size)
+        $textSize = 16;
+
+        $date = date("d-m-Y H:i:s");
         // Define the text lines to add at the bottom
         $textLines = [
             "หมายเลขโต๊ะ: $table_name",
             "รหัสผ่านโต๊ะ: $table_password",
             "วัน เวลา: $date",
         ];
-
-        // Define the text size (font size)
-        $textSize = 16;
 
         // Add each line of text to the new image with the specified font size
         foreach ($textLines as $line) {
@@ -177,7 +178,7 @@ class UserController extends Controller
             //return view('user/user_home');
             //return view('management/admin_page/management_home');
         } else {
-            print("error password");
+            print("error password<br>");
         }
     }
 
@@ -237,6 +238,9 @@ class UserController extends Controller
                 ->get();
         }*/
 
+        $topMenu =[];
+
+
         $allMenu = Menu::select([
             'menus.menu_id as menu_id',
             'menus.menu_name as menu_name',
@@ -249,6 +253,7 @@ class UserController extends Controller
             ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
                 $join->on('menus.menu_id', '=', 'ph.menu_id');
             })
+            ->where('menus.menu_status', '!=', 'ยกเลิกให้บริการ')
             ->orderBy('menu_category_name', 'asc')
             ->orderBy('menus.menu_id', 'asc');
 
@@ -257,12 +262,26 @@ class UserController extends Controller
             $allMenu->where('menus.menu_name', 'LIKE', "%$search%");
         } elseif ($category > 0 && !$search) {
             $allMenu->where('menu_categories.menu_category_id', $category);
+        } elseif ($category == -1 && !$search) {
+            $year = now()->year;
+            $month = now()->month;
+            $topMenu = food_order::select([
+                'menu_id AS menu_id',
+                DB::raw('COUNT(menu_id) AS menu_id_count')
+            ])
+                ->whereYear('date_order', $year)
+                ->whereMonth('date_order', $month)
+                ->groupBy('menu_id')
+                ->orderBy('menu_id_count', 'desc')
+                ->take(5)
+                ->get();
+            $allMenu->whereIn('menus.menu_id', $topMenu->pluck('menu_id'));
         }
 
         // Execute the query and get the result
         $allMenu = $allMenu->get();
 
-        return response()->json(['allMenus' => $allMenu]);
+        return response()->json(['allMenus' => $allMenu, 'topMenus' => $topMenu]);
     }
 
     public function getPutMenuToBasket()
@@ -474,17 +493,28 @@ class UserController extends Controller
         $tableId = request('tableId');
         $basket = session('basket');
 
+        $data = now()->format('Ymd');
         foreach ($basket as &$item) {
             $lastFoodOrdersId = DB::table('food_orders')->orderBy('food_order_id', 'desc')->first();
             $newFoodOrdersId = null;
 
-            if ($lastFoodOrdersId) {
-                // If records exist, increment the table_id by 1
-                $newFoodOrdersId  = $lastFoodOrdersId->food_order_id + 1;
+            if (!$lastFoodOrdersId) {
+                $newFoodOrdersId = (intval($data) * 10000) + 1;
             } else {
-                // If no records exist, set an initial value (e.g., 1)
-                $newFoodOrdersId  = 1;
+                if ($data != substr($lastFoodOrdersId->food_order_id, 0, 8)) {
+                    $newFoodOrdersId = (intval($data) * 10000) + 1;
+                } else {
+                    $newFoodOrdersId = (intval($data) * 10000) + substr($lastFoodOrdersId->food_order_id, 9, 12) + 1;
+                }
             }
+
+            // if ($lastFoodOrdersId) {
+            //     // If records exist, increment the table_id by 1
+            //     $newFoodOrdersId  = $lastFoodOrdersId->food_order_id + 1;
+            // } else {
+            //     // If no records exist, set an initial value (e.g., 1)
+            //     $newFoodOrdersId  = 1;
+            // }
 
             DB::table('food_orders')->insert([
                 'food_order_id' => $newFoodOrdersId,
@@ -494,8 +524,74 @@ class UserController extends Controller
                 'food_order_status' => 1,
                 'date_order' => DB::raw('CURRENT_TIMESTAMP')
             ]);
+        }
+    }
 
+    public function checkPaymentStatus()
+    {
+        $nameTable = request('nameTable');
+        $data = null;
+        $order = DB::table('food_orders as fo')
+            ->select([
+                'fo.food_order_id as food_order_id',
+                't.table_name as table_name',
+                'm.menu_name as menu_name',
+                'm.menu_image as menu_image',
+                'fo.food_amount as food_amount',
+                'fo.food_order_status as food_order_status',
+                'ph.price as price'
+            ])
+            ->leftJoin('tables as t', function ($join) {
+                $join->on('fo.table_id', '=', 't.table_id');
+            })
+            ->leftJoin('menus as m', function ($join) {
+                $join->on('fo.menu_id', '=', 'm.menu_id');
+            })
+            ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+                $join->on('m.menu_id', '=', 'ph.menu_id');
+            })
+            ->where('t.table_name', $nameTable)
+            ->whereBetween('fo.food_order_status', [1, 4]);
+
+        $dataCheck = $order->get();
+        if (count($dataCheck) == 0) {
+            $data = false;
+        } else {
+            $dataCheck = $order->where('fo.food_order_status', 'รอชำระเงิน')->get();
+            if (count($dataCheck) > 0) {
+                $data = true;
+            } else {
+                $data = false;
+            }
         }
 
+        return response()->json(['data' => $data]);
+    }
+
+    public function changeOrderToPayment()
+    {
+        $tableId = request('tableId');
+
+        DB::table('food_orders')
+            ->where('table_id', $tableId)
+            ->where('food_order_status', '!=', 'ชำระเงินเรียบร้อย')
+            ->update([
+                'food_order_status' => 'รอชำระเงิน',
+            ]);
+    }
+
+    public function checkPassword()
+    {
+        $tableId = request('tableId');
+        $tablePassWord = request('passWord');
+        $table = DB::table('tables')
+            ->where('table_id', $tableId)
+            ->get();
+
+        if ($table[0]->tables_password == $tablePassWord) {
+            return response()->json(['data' => false]);
+        } else {
+            return response()->json(['data' => true]);
+        }
     }
 }

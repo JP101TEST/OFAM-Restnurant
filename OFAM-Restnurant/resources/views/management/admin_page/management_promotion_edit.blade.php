@@ -230,7 +230,7 @@ $promotion = DB::table('promotions')
         <div class="row mt-3">
             <div class="col-lg-12">
                 <br>
-                <h4 class="text-center">แก้ไขรายการอาหาร</h4>
+                <h4 class="text-center">แก้ไขโปรโมชั่น</h4>
                 <div class="mb-3 container">
                     <p>แก้ไข:</p>
                 </div>

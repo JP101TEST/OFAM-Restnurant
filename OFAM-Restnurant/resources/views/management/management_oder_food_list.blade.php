@@ -2,6 +2,46 @@
 
 use App\Models\Employee; //เพิ่มมาทีหลัง
 $employees = Employee::all();
+
+use Illuminate\Support\Facades\DB;
+//ดึงค่ามาใช้จาก json array
+// $idJson = DB::table('bill_lists')->get();
+
+// print("<td>bill_id:" . $idJson[4]->bill_id . "<br>employees_id:" . $idJson[4]->employees_id . "<br>food_order_id:" . $idJson[4]->food_order_id . "<br>promotion_id:" . $idJson[4]->promotion_id . "<br>discount_thad_day:" . $idJson[4]->discount_thad_day . "<br>total_price:" . $idJson[4]->total_price . "<br>customer_name:" . $idJson[4]->customer_name . "<br>restaurant_id:" . $idJson[4]->restaurant_id . "<br>created_at:" . $idJson[4]->created_at . "</td><br><br>");
+
+// $decodedArray = json_decode($idJson[4]->food_order_id, true);
+// $foodOderList = DB::table('food_orders as fo')
+//     ->select([
+//         'fo.food_order_id as food_order_id',
+//         't.table_name as table_name',
+//         'm.menu_name as menu_name',
+//         'm.menu_image as menu_image',
+//         'fo.food_amount as food_amount',
+//         'fo.food_order_status as food_order_status',
+//         'ph.price as price'
+//     ])
+//     ->leftJoin('tables as t', function ($join) {
+//         $join->on('fo.table_id', '=', 't.table_id');
+//     })
+//     ->leftJoin('menus as m', function ($join) {
+//         $join->on('fo.menu_id', '=', 'm.menu_id');
+//     })
+//     ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
+//         $join->on('m.menu_id', '=', 'ph.menu_id');
+//     })
+//     ->whereIn('food_order_id', $decodedArray)->get();
+
+// //print_r($foodOderList);
+
+// foreach ($foodOderList as $item) {
+//     print("<td> $item->food_order_id  $item->table_name  $item->menu_name  $item->menu_image  จำนวน $item->food_amount  $item->food_order_status </td><br>");
+// }
+
+// //print_r($decodedArray);
+
+// foreach ($decodedArray as $value) {
+//     print($value . "<br>");
+// }
 ?>
 
 <!DOCTYPE html>
@@ -237,7 +277,6 @@ $employees = Employee::all();
             <div class="collapse navbar-collapse pad" id="navbarSupportedContent_sub">
                 <ul class="container navbar-nav me-auto">
                     <li class="nav-item text-center" style="width:120px;"><a class="nav-link custom-nav-link-active  justify-content-center"><img class="icon-size spade-bar" src="{{ asset('images/dinner-table.png') }}" alt="">โต๊ะ</a></li>
-                    <li class="nav-item text-center" style="width:120px;"><a class="nav-link custom-nav-link  justify-content-center"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">เมนู</a></li>
                 </ul>
             </div>
         </div>
@@ -288,6 +327,7 @@ $employees = Employee::all();
 
     function changeMenuStatus(id, value) {
         var confirmation = confirm('คุณต้องการเปลี่ยนสถานะโต๊ะใช่หรือไม่');
+        console.log("id:"+id+" | value:"+value);
         if (confirmation) {
             $.ajax({
                 type: 'GET',
@@ -301,7 +341,7 @@ $employees = Employee::all();
     $(document).ready(function() {
 
         let currentPage = 1 // Track the current page
-        const itemsPerPage = 5 // Number of items to display per page
+        const itemsPerPage = 7 // Number of items to display per page
 
 
 
@@ -337,6 +377,7 @@ $employees = Employee::all();
                     let tableData = response.allTables
                         .slice(startIndex, endIndex)
                         .map(table => {
+                            //console.log(table.table_name+" "+table.table_id);
                             return `
                             <tr>
                                 <td class="text-center ">

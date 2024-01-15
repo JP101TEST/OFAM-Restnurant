@@ -15,7 +15,7 @@
                 <div class="col-12 col-md-8 col-lg-6 col-xl-5">
                     <div class="card shadow-2-strong" style="border-radius: 1rem;">
                         <div class="card-body p-5">
-                            <h3 class="mb-5 text-center">พบปัญาในการเข้าสู่หน้าสั่งอาหาร</h3>
+                            <h3 class="mb-5 text-center">พบปัญหาในการเข้าสู่หน้าสั่งอาหาร</h3>
                             <h6 class="mb-5 text-left align-self-md-start">
                                 อาจเกิดจาก
                                 <ul class="list-unstyled">

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee; //เพิ่มมาทีหลัง
+use App\Models\employee; //เพิ่มมาทีหลัง
 use Illuminate\Http\Request;
 
 class login extends Controller

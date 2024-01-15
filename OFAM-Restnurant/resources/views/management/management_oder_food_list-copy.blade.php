@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Employee; //เพิ่มมาทีหลัง
-use App\Models\Table; //เพิ่มมาทีหลัง
+use App\Models\employee; //เพิ่มมาทีหลัง
+use App\Models\table; //เพิ่มมาทีหลัง
 
 $employees = Employee::all();
 $tables = Table::all();

@@ -115,6 +115,18 @@
             margin-right: 10px;
         }
 
+        .icon-clear-size-no-brightness {
+            width: 55px;
+            margin-right: 10px;
+            border: 1px solid #CDCDCD;
+            border-radius: 5px;
+            background-color: #FFFFFF;
+        }
+
+        .icon-clear-size-no-brightness:hover {
+            background-color: #CDCDCD;
+        }
+
         .icon-brightness {
             filter: brightness(0) invert(1);
         }
@@ -236,18 +248,26 @@
                     <div class="mb-3">
                         <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/percentage.png') }}" alt="">
                         <label for="formGroupExampleInput" class="form-label">เปอร์เซ็นต์ส่วนลด:</label>
-                        <p class="text-center text-light bg-danger" id="errorPromotionPercentage" style="display: none;">{{ "ข้อมูลเป็นตัวเลขและ 0-100 เท่านั้น" }}</p>
+                        <p class="text-center text-light bg-danger" id="errorPromotionPercentage" style="display: none;">{{ "ข้อมูลเป็นตัวเลขและ 1-100 เท่านั้น" }}</p>
                         <input type="number" class="form-control error-input" id="formGroupExampleInput2" name="promotionPercentage" min="1" max="100" placeholder="กรอกชื่อเปอร์เซ็นต์ส่วนลด" oninput="checkInputs()">
                     </div>
                     <div class="mb-3">
                         <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/timetable.png') }}" alt="">
                         <label for="formGroupExampleInput2" class="form-label">วันที่เริ่มโปรโมชั่น:</label>
-                        <input type="date" class="form-control error-input" id="formGroupExampleInput3" name="startDate" oninput="checkInputs()">
+                        <div class="row">
+                            <input type="date" class="form-control error-input" id="formGroupExampleInput3" name="startDate" oninput="checkInputs()" style="width: 45px;">
+                            <input type="text" class="col error-input" id="formGroupExampleInput3Output" value="dd-mm-yyyy" disabled>
+                            <img class="col-1 icon-clear-size-no-brightness spade-bar" src="{{ asset('images/clean.png') }}" alt="" onclick="resetTime('formGroupExampleInput3');checkInputs();" title="ลบค่าออก">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/timetable.png') }}" alt="">
                         <label for="formGroupExampleInput2" class="form-label">วันที่สิ้นสุดโปรโมชั่น:<a class="text_red">(สามารถเว้นว่างได้กรณีที่ไม่ต้องการหยุดการใช้โปรโมชั่น)</a></label>
-                        <input type="date" class="form-control" id="formGroupExampleInput4" name="endDate" oninput="checkInputs()">
+                        <div class="row">
+                            <input type="date" class="col-1 form-control" id="formGroupExampleInput4" name="endDate" oninput="checkInputs()" style="width: 45px;">
+                            <input type="text" class="col" id="formGroupExampleInput4Output" value="dd-mm-yyyy" disabled>
+                            <img class="col-1 icon-clear-size-no-brightness spade-bar" src="{{ asset('images/clean.png') }}" alt="" onclick="resetTime('formGroupExampleInput4');checkInputs();" title="ลบค่าออก">
+                        </div>
                     </div>
                     {{ session()->forget(['errorPromotionName','errorPromotionPercentage']) }}
                     <div class="col-lg-12 d-flex justify-content-between">
@@ -264,15 +284,49 @@
         </div>
     </div>
 </body>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script>
+    function resetTime(id) {
+        $('#' + id).val(null);
+        $('#' + id + 'Output').val('dd-mm-yyyy');
+    }
+
+    function updateDateOutput() {
+        var selectedDateStart = document.getElementById("formGroupExampleInput3").value;
+        var selectedDateEnd = document.getElementById("formGroupExampleInput4").value;
+        if (selectedDateStart) {
+            var formattedDateStart = formatDate(selectedDateStart);
+            document.getElementById("formGroupExampleInput3Output").value = formattedDateStart;
+        }
+        if (selectedDateEnd) {
+            var formattedDateEnd = formatDate(selectedDateEnd);
+            document.getElementById("formGroupExampleInput4Output").value = formattedDateEnd;
+        }
+    }
+
+    function formatDate(date) {
+        // Format the date as dd-mm-yyyy
+        var options = {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        };
+        return new Date(date).toLocaleDateString('en-GB', options);
+    }
+
     function checkInputs() {
         const promotionName = document.getElementById('formGroupExampleInput');
         const promotionPercentage = document.getElementById('formGroupExampleInput2');
         const errorElement = document.getElementById("errorPromotionPercentage");
         const startDate = document.getElementById('formGroupExampleInput3');
 
+        const selectedDateStart = document.getElementById("formGroupExampleInput3").value;
+        const selectedDateEnd = document.getElementById("formGroupExampleInput4").value;
 
         const submitButton = document.getElementById('submitButton');
+
+        updateDateOutput();
+
 
         // Check if any input field is empty or the menuCategory is not selected
         if (promotionName.value.trim() === '') {
@@ -289,8 +343,10 @@
 
         if (startDate.value.trim() === '') {
             startDate.classList.add('error-input');
+            $('#formGroupExampleInput3Output').addClass('error-input');
         } else {
             startDate.classList.remove('error-input');
+            $('#formGroupExampleInput3Output').removeClass('error-input');
         }
 
         // Check if any input field is empty or the menuCategory is not selected
@@ -301,7 +357,7 @@
             submitButton.disabled = false;
             errorMessage.style.display = 'none';
         }
-        // Check if the input value is outside the valid range
+
         if (promotionPercentage.value < 1 || promotionPercentage.value > 100) {
             submitButton.disabled = true;
             errorMessage.style.display = 'block';
@@ -310,7 +366,20 @@
             errorElement.style.display = "none"; // Hide the error message
         }
 
+        if (selectedDateEnd && (selectedDateStart >= selectedDateEnd)) {
+            submitButton.disabled = true;
+            errorMessage.style.display = 'block';
+        } else {
+            errorMessage.style.display = "none";
+        }
 
+        if (promotionName.value.trim() === '' || promotionPercentage.value.trim() === '' || startDate.value.trim() === '') {
+            $('#errorMessage').html("กรุณากรอกข้อมูลให้ครบ.");
+        } else {
+            if (selectedDateEnd && (selectedDateStart > selectedDateEnd)) {
+                $('#errorMessage').html("วันสิ้นสุดต้องว่าง,มากกว่าหรือเท่ากับวันที่เริ่มโปรโมชั่น.");
+            }
+        }
     }
 </script>
 

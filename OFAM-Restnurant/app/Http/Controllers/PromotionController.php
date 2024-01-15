@@ -112,7 +112,7 @@ class PromotionController extends Controller
                     'date_start' => $startDate,
                 ]);
         }
-        if ($endDate != null && $endDate != $promotion[0]->date_end) {
+        if ($endDate != $promotion[0]->date_end) {
             //print('Update stop date' . '<br>');
             DB::table('promotions')
                 ->where('promotion_id', $promotion_id)

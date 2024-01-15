@@ -15,6 +15,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MenuOrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\BillController;
+use App\Http\Controllers\SummaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,7 +94,8 @@ Route::get('/management-admin/bill/get-all-menu-bill', [BillController::class, '
 Route::get('/management-admin/bill/change', [BillController::class, 'change']);
 
 Route::get('/management-admin/total-summary', [ManagementAdminRoute::class, 'goTotalSummarypageWithGet'])->name('management.admin.total.summary');
-
+Route::get('/management-admin/total-summary/get-all-totals-in-year', [SummaryController::class, 'getTotalsInYear']);
+Route::get('/management-admin/total-summary/get-all-totals-in-month', [SummaryController::class, 'getTotalsInMonth']);
 
 Route::get('/order/generateQRCode/Table={table_name},PassWord={table_password}', [UserController::class, 'generateQrCode']);
 Route::get('/order/Table={table_name},PassWord={table_password}', [ManagementUserRoute::class, 'goUserHomepage']);

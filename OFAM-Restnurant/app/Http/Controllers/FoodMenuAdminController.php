@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 
 
-use App\Models\Menu;
+use App\Models\menu;
 
 class FoodMenuAdminController extends Controller
 {

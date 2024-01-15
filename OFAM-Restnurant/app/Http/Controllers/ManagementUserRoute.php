@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Table;
+use App\Models\table;
 
 class ManagementUserRoute extends Controller
 {

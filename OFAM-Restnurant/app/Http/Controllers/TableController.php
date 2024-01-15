@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Table;
+use App\Models\table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +21,9 @@ class TableController extends Controller
 
     public function getAllTables()
     {
+        $typeValue = request('typeValue');
+        $valueOfType = request('valueOfType');
+
         $allTables = DB::table('tables as t')
             ->select('t.*', 'f1.table_id as t_id', 'f1.food_order_status as table_order_status')
             ->leftJoin(DB::raw('(SELECT
@@ -43,8 +46,13 @@ class TableController extends Controller
         WHEN f1.food_order_status = 3 THEN 4
         ELSE 5
     END"))
-            ->orderBy('table_id', 'asc')
-            ->get();
+            ->orderBy('table_id', 'asc');
+
+        if ($typeValue == 'status') {
+            $allTables = $allTables->where('t.tables_status', $valueOfType)->get();
+        } else {
+            $allTables = $allTables->get();
+        }
         /*
     SELECT
     t.*,
@@ -80,7 +88,7 @@ ORDER BY CASE WHEN
 END;
     */
 
-        return response()->json(['allTables' => $allTables]);
+        return response()->json(['allTables' => $allTables, 'one' => $typeValue, 'two' => $valueOfType]);
     }
 
     public function getTablesFromSearch()
@@ -150,7 +158,7 @@ END;
         }*/
 
         $tables = DB::table('tables as t')
-            ->select('t.*', 'f1.table_id', 'f1.food_order_status as table_order_status')
+            ->select('t.*', 'f1.table_id as t_id', 'f1.food_order_status as table_order_status')
             ->leftJoin(DB::raw('(SELECT
         table_id,
         MIN(

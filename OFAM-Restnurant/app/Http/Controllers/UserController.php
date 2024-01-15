@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Table;
+use App\Models\table;
 use App\Models\food_order;
 
 //ลบ ; จาก extension=gd ใน php8.1.0\php.ini
@@ -123,49 +123,50 @@ class UserController extends Controller
         file_put_contents($filePath, $qrCode);
         imagepng($newImage, $filePath);
 
-        // Display the image using the asset() function
-        echo "<img src='" . asset("images/QrCode/$fileName") . "' alt='QR Code'><br>";
+        //         // Display the image using the asset() function
+        //         echo "<img src='" . asset("images/QrCode/$fileName") . "' alt='QR Code'><br>";
 
-        echo '
-<style>
-    .custom-back-button {
-        background-color: #007bff;
-        color: #fff;
-        padding: 10px 20px;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-        width: 300px; /* Add the unit, e.g., pixels */
-        font-size: 20px;
-    }
-</style>
-';
+        //         echo '
+        // <style>
+        //     .custom-back-button {
+        //         background-color: #007bff;
+        //         color: #fff;
+        //         padding: 10px 20px;
+        //         text-decoration: none;
+        //         border: none;
+        //         cursor: pointer;
+        //         width: 300px; /* Add the unit, e.g., pixels */
+        //         font-size: 20px;
+        //     }
+        // </style>
+        // ';
 
-        // Add a "Print" button
-        echo '<button onclick="printImage()" class="custom-back-button">ปริ้น</button><br><br>';
+        //         // Add a "Print" button
+        //         echo '<button onclick="printImage()" class="custom-back-button">ปริ้น</button><br><br>';
 
-        // Add a "Back" button
-        echo '<button onclick="goBack()" class="custom-back-button">ย้อนกลับ</button>';
+        //         // Add a "Back" button
+        //         echo '<button onclick="goBack()" class="custom-back-button">ย้อนกลับ</button>';
 
-        // JavaScript function to print the displayed image
-        echo '<script>
-    function printImage() {
-        var img = new Image();
-        img.src = "' . asset("images/QrCode/$fileName") . '";
-        var printWindow = window.open("", "", "width=600,height=600");
-        printWindow.document.open();
-        printWindow.document.write("<html><head><title>Print QR Code</title></head><body>");
-        printWindow.document.write("<img src=\"" + img.src + "\" onload=\"window.print(); printWindow.close();\">");
-        printWindow.document.write("</body></html>");
-        printWindow.document.close();
-    }
-</script>';
+        //         // JavaScript function to print the displayed image
+        //         echo '<script>
+        //     function printImage() {
+        //         var img = new Image();
+        //         img.src = "' . asset("images/QrCode/$fileName") . '";
+        //         var printWindow = window.open("", "", "width=600,height=600");
+        //         printWindow.document.open();
+        //         printWindow.document.write("<html><head><title>Print QR Code</title></head><body>");
+        //         printWindow.document.write("<img src=\"" + img.src + "\" onload=\"window.print(); printWindow.close();\">");
+        //         printWindow.document.write("</body></html>");
+        //         printWindow.document.close();
+        //     }
+        // </script>';
 
-        echo '<script>
-    function goBack() {
-        window.history.back();
-    }
-</script>';
+        //         echo '<script>
+        //     function goBack() {
+        //         window.history.back();
+        //     }
+        // </script>';
+        return view('management/management_qrcode',['fileName' => $fileName]);
     }
 
     public function goHomepageWithGetP($table_name, $table_password)
@@ -238,7 +239,7 @@ class UserController extends Controller
                 ->get();
         }*/
 
-        $topMenu =[];
+        $topMenu = [];
 
 
         $allMenu = Menu::select([

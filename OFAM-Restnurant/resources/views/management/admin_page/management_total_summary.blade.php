@@ -6,32 +6,18 @@ $yearSelect = DB::table('bill_lists')
     ->select(DB::raw('YEAR(created_at) as year'))
     ->groupBy(DB::raw('YEAR(created_at)'))
     ->get();
-$lastYear = $yearSelect->last()->year ?? now()->year;
-$summaryInyear = DB::table('bill_lists')
-    ->select(DB::raw('MONTH(created_at) as month'), DB::raw('SUM(total_price) as total_price_sum'))
-    ->whereYear('created_at', $lastYear)
-    ->groupBy(DB::raw('MONTH(created_at)'))
-    ->get();
-/**SELECT
-    MONTH(`created_at`) AS month,
-    SUM(total_price) AS total_price_sum
-FROM
-    `bill_lists`
-WHERE
-    YEAR(`created_at`) = 2023
-GROUP BY
-    MONTH(`created_at`); */
-
-$dataIncomeMonth = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-foreach ($summaryInyear as $summary) {
-    // Extract the month and total_price_sum from the summary
-    $month = $summary->month;
-    $totalPriceSum = $summary->total_price_sum;
-
-    // Assign total_price_sum to the corresponding month index in the array
-    $dataIncomeMonth[$month - 1] = $totalPriceSum;
-}
-$jsonDataIncomeMonth = json_encode($dataIncomeMonth);
+// print(sizeof($yearSelect));
+// if (sizeof($yearSelect) > 0) {
+//     $selectedYear = $yearSelect[sizeof($yearSelect) - 1]->year; // Get the last year in the result
+//     $monthSelect = DB::table('bill_lists')
+//         ->select(DB::raw('MONTH(MAX(created_at)) as last_month'))
+//         ->whereYear('created_at', $selectedYear)
+//         ->get();
+//     print($monthSelect);
+// } else {
+//     print("No years found");
+// }
+$monthList = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 ?>
 
 <!DOCTYPE html>
@@ -289,6 +275,12 @@ $jsonDataIncomeMonth = json_encode($dataIncomeMonth);
             background-color: #de7e37;
             cursor: pointer;
         }
+
+        @media (max-width: 550px) {
+            body {
+                width: 550px;
+            }
+        }
     </style>
 </head>
 
@@ -368,11 +360,28 @@ $jsonDataIncomeMonth = json_encode($dataIncomeMonth);
                 </div>
                 <br>
                 <div class="text-center">
-                    <h5>รับในแต่ละเดือน</h5>
+                    <h5 id="yearTotal">รับในแต่ละเดือนภายในปี</h5>
                 </div>
                 <div style="height: 300px;">
                     <canvas id="monthlyIncomeChart"></canvas>
                 </div>
+                <br><br>
+                <div class="col" id="selectShowMonthUpdate">
+                    <label for="selectShowMonth">เดือนที่ต้องการค้นหา</label>
+                    <select id="selectShowMonth" name="selectShowMonth" class="text-center" style="border-radius: 15px;width: 200px;">
+                        @foreach($monthList as $index => $month)
+                        <option value="{{ $index + 1 }} " {{ $index + 1 == now()->month ? 'selected' : '' }}>{{$month}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <br>
+                <div class="text-center">
+                    <h5 id="dayTotal">รับในแต่ละวันภายในเดือน</h5>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="dayIncomeChart"></canvas>
+                </div>
+                <br><br><br>
             </div>
         </div>
     </div>
@@ -382,24 +391,37 @@ $jsonDataIncomeMonth = json_encode($dataIncomeMonth);
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    let myBarChart = null;
+    let barDay = null;
+    const monthList = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
     document.addEventListener('DOMContentLoaded', function() {
-
-        const dataIncomeMonth = <?= $jsonDataIncomeMonth ?>;
-        console.log(dataIncomeMonth);
-        // Sample data for illustration
-        const chartData = {
+        // Initial chart setup
+        const monthlyChartData = {
             labels: ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."],
             datasets: [{
                 label: 'รายได้ในเดือน',
-                data: dataIncomeMonth,
-                // data: [1500, 2000, 1800, 2500, 2200, 2800, 3000, 2700, 2300, 2000, 1900, 2200],
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 backgroundColor: 'rgba(54, 262, 105, 0.5)',
                 borderColor: 'rgba(54, 262, 105, 1)',
                 borderWidth: 1
             }]
         };
 
-        // Chart configuration
+        const dailyChartData = {
+            labels: Array.from({
+                length: 31
+            }, (_, i) => i + 1), // Assuming max 31 days in a month
+            datasets: [{
+                label: 'รายได้ในแต่ละวัน',
+                data: Array.from({
+                    length: 31
+                }, () => 0),
+                backgroundColor: 'rgba(54, 262, 105, 0.5)',
+                borderColor: 'rgba(54, 262, 105, 1)',
+                borderWidth: 1
+            }]
+        };
+
         const chartOptions = {
             scales: {
                 y: {
@@ -409,27 +431,87 @@ $jsonDataIncomeMonth = json_encode($dataIncomeMonth);
                     }
                 }
             },
-            responsive: true, // Make the chart responsive
-            maintainAspectRatio: false, // Maintain the aspect ratio when resizing
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false // Hide the legend
+                    display: false
                 }
             }
         };
 
-        // Create the bar chart
-        const ctx = document.getElementById('monthlyIncomeChart').getContext('2d');
-        const myBarChart = new Chart(ctx, {
+        const ctxMonth = document.getElementById('monthlyIncomeChart').getContext('2d');
+        const ctxDay = document.getElementById('dayIncomeChart').getContext('2d');
+        barMonth = new Chart(ctxMonth, {
             type: 'bar',
-            data: chartData,
+            data: monthlyChartData,
+            options: chartOptions
+        });
+        barDay = new Chart(ctxDay, {
+            type: 'bar',
+            data: dailyChartData,
             options: chartOptions
         });
     });
-</script>
-<script>
-    $(document).ready(function() {
 
+    $(document).on('change', '#selectShowYear', function() {
+        $('#yearTotal').text("รับในแต่ละเดือนภายในปี " + $('#selectShowYear').val());
+        updateTotalInYear();
+        updateTotalInMonth();
+    });
+
+    $(document).on('change', '#selectShowMonth', function() {
+
+        $('#dayTotal').text("รับในแต่ละวันภายในเดือน " + monthList[$('#selectShowMonth').val() - 1]);
+        updateTotalInMonth();
+    });
+
+    function updateTotalInYear() {
+        $('#dayTotal').text("รับในแต่ละวันภายในเดือน " + monthList[$('#selectShowMonth').val() - 1]);
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/total-summary/get-all-totals-in-year',
+            data: {
+                year: $("#selectShowYear").val(),
+            },
+            success: function(response) {
+                //console.log(response.totals);
+                // Update the chart data
+                barMonth.data.datasets[0].data = response.totals;
+                // Update the chart
+                barMonth.update();
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        });
+    }
+
+    function updateTotalInMonth() {
+        //console.log($("#selectShowMonth").val());
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/total-summary/get-all-totals-in-month',
+            data: {
+                year: $("#selectShowYear").val(),
+                month: $("#selectShowMonth").val(),
+            },
+            success: function(response) {
+                //console.log(response.totals);
+                // Update the chart data
+                barDay.data.datasets[0].data = response.totals;
+                // Update the chart
+                barDay.update();
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        updateTotalInYear();
+        updateTotalInMonth();
     });
 </script>
 

@@ -629,6 +629,7 @@ foreach ($decodedArray as $value) {
                     if (response.data == true) {
                         paymentDone = true;
                         clearInterval(intervalId);
+                        clearSession();
                         checkBasket();
                         checkOrderList();
                         checkPaymentStatus();

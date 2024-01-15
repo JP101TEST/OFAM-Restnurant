@@ -4,7 +4,7 @@ use App\Models\restaurantInfo;
 
 $restaurantlogo = restaurantInfo::value('restaurant_logo');
 
-use App\Models\Menu; // Adjust the model namespace as needed
+use App\Models\menu; // Adjust the model namespace as needed
 use App\Models\menu_category; // Adjust the model namespace as needed
 use Illuminate\Support\Facades\DB;
 

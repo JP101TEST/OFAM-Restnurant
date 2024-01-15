@@ -2,7 +2,7 @@
 
 $employeesId = session('User')[0]->employees_id;
 
-use App\Models\Table;
+use App\Models\table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 

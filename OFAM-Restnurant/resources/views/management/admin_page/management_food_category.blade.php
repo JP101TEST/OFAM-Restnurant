@@ -1,8 +1,5 @@
 <?php
 
-use App\Models\menu_category;
-
-$menuCategorys = menu_category::all();
 ?>
 
 <!DOCTYPE html>
@@ -160,7 +157,7 @@ $menuCategorys = menu_category::all();
         }
 
         .bg-green {
-            background-color: #99c07f;
+            background-color: #60784F;
             /* Change this to your desired background color */
             color: white;
         }
@@ -173,6 +170,16 @@ $menuCategorys = menu_category::all();
 
         .error-input {
             border: 1px solid red;
+        }
+
+        .popup td {
+            color: black;
+        }
+
+        .popup:hover td {
+            color: red;
+            cursor: pointer;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -222,105 +229,209 @@ $menuCategorys = menu_category::all();
         <div class="row mt-3">
             <div class="col-lg-12">
                 <br>
-                <h4 class="text-center">เพิ่มรายการอาหาร</h4>
-                <div class="mb-3 container">
-                    <p>เพิ่ม:</p>
-                </div>
-                <form method="post" action="{{ route('management.admin.food.menu.add.postData') }}" enctype="multipart/form-data">
-                    @csrf
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ชื่ออาหาร:</label>
-                        @if (session('errorMenuName'))
-                        <p class="text-center text-light bg-danger">{{ session('errorMenuName') }}</p>
-                        @endif
-                        <input type="text" class="form-control error-input" id="formGroupExampleInput" name="menuName" placeholder="กรอกชื่ออาหาร" oninput="checkInputs()">
-                    </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dollar.png') }}" alt="">
-                        <label for="formGroupExampleInput" class="form-label">ราคา:</label>
-                        <input type="number" class="form-control error-input" id="formGroupExampleInput2" name="menuPrice" min="1" placeholder="กรอกราคา" oninput="checkInputs()">
-                    </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/insert-picture-icon.png') }}" alt="">
-                        <label for="formGroupExampleInput2" class="form-label">รูปอาหาร:</label>
-                        @if (session('errorImage'))
-                        <p class="text-center text-light bg-danger">{{ session('errorImage') }}</p>
-                        @endif
-                        <input type="file" class="form-control error-input" id="formGroupExampleInput3" name="menuImage" accept="image/*" placeholder="Another input placeholder" oninput="checkInputs()">
-                    </div>
-                    <div class="mb-3">
-                        <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/menu.png') }}" alt="">
-                        <label for="formGroupExampleInput2" class="form-label">หมวดหมู่:</label>
-                        @if (session('errorMenuCategory'))
-                        <p class="text-center text-light bg-danger">{{ session('errorMenuCategory') }}</p>
-                        @endif
-                        <select class="form-select error-input" aria-label="Default select example" name="menuCategory" oninput="checkInputs()">
-                            <option selected value="0">กรุณาเลือกหมวดหมู่</option>
-                            @foreach ($menuCategorys as $menuCategory)
-                            <option value="{{ $menuCategory->menu_category_id }}">{{ $menuCategory->menu_category_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    {{ session()->forget(['errorMenuName','errorImage','errorMenuCategory']) }}
-                    <div class="col-lg-12 d-flex justify-content-between">
-                        <div class="col navbar-nav me-auto width-150">
-                            <p id="errorMessage" class="text-danger">กรุณากรอกข้อมูลให้ครบ.</p>
-                            <button type="submit" class="nav-link custom-nav-link justify-content-center" id="submitButton" onclick="return confirm('คุณแน่ใจว่าต้องการแก้ไขข้อมูล?');" disabled>
-                                <img class="icon-size spade-bar" src="{{ asset('images/new-page.png') }}" alt="">
-                                เพิ่ม
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                <h4 class="text-center">หมวดหมู่</h4>
+                <label for="inputSearch">ค้นหา</label>
+                <input type="text" id="searchInput" name="inputSearch" placeholder="ชื่อหมวดหมู่"><br>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-center">หมวดหมู่</th>
+                        </tr>
+                    </thead>
+                    <tbody id="category-all">
+                    </tbody><br>
+                </table>
+                <nav>
+                    <ul class="pagination justify-content-center" id="pagination">
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
 </body>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="height: 90vh;margin: auto;">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">แก้ไขชื่อหมวดหมู่</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="displayError" class="text-center" style="color:red;display: block;"></h6>
+                <div id="bodyPopup" class="text-center">
+                    <label for="inputNewNameCategory">ชื่อหมวดหมู่</label>
+                    <input type="text" name="" id="inputNewNameCategory" style="width: 50%;border-radius: 8px;padding-left: 10px;">
+                </div><br><br>
+                <div id="endPopupclickChange" class="d-flex justify-content-center align-items-end">
+                    <button class="btn bg-green" style="width: 150px; border-radius: 10px; height: 50px;">
+                        แก้ไข
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    function checkInputs() {
-        const menuName = document.getElementById('formGroupExampleInput');
-        const menuPrice = document.getElementById('formGroupExampleInput2');
-        const menuImage = document.getElementById('formGroupExampleInput3');
-        const menuCategory = document.querySelector('select[name="menuCategory"]');
+    var searchValue = null;
+    var errorInput = false;
+    var menuCategoryIdToChange = null;
+    let currentPage = 1;
+    const itemsPerPage = 10;
 
-        const submitButton = document.getElementById('submitButton');
+    function showPopup(menuCategoryId) {
+        errorInput = false;
+        menuCategoryIdToChange = menuCategoryId;
+        hidShowError();
+        $('#inputNewNameCategory').val('');
+        $('#exampleModal').modal('show');
+    }
 
-        // Check if any input field is empty or the menuCategory is not selected
-        if (menuName.value.trim() === '') {
-            menuName.classList.add('error-input');
+    function hidShowError() {
+        if (errorInput == true) {
+            displayError.style.display = 'block';
         } else {
-            menuName.classList.remove('error-input');
-        }
-
-        if (menuPrice.value.trim() === '') {
-            menuPrice.classList.add('error-input');
-        } else {
-            menuPrice.classList.remove('error-input');
-        }
-
-        if (menuImage.value.trim() === '') {
-            menuImage.classList.add('error-input');
-        } else {
-            menuImage.classList.remove('error-input');
-        }
-
-        if (menuCategory.value === '0') {
-            menuCategory.classList.add('error-input');
-        } else {
-            menuCategory.classList.remove('error-input');
-        }
-
-        // Check if any input field is empty or the menuCategory is not selected
-        if (menuName.value.trim() === '' || menuPrice.value.trim() === '' || menuImage.value.trim() === '' || menuCategory.value === '0') {
-            submitButton.disabled = true;
-            errorMessage.style.display = 'block';
-        } else {
-            submitButton.disabled = false;
-            errorMessage.style.display = 'none';
+            displayError.style.display = 'none';
         }
     }
-</script>
 
+    function getAllcategory(searchValue) {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/food/category/edit/get-all',
+            data: {
+                searchValue: searchValue,
+            },
+            success: function(response) {
+
+
+                const totalCategory = response.allCategory.length
+                if (currentPage > Math.ceil(totalCategory / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalCategory);
+
+                let tableData = ``;
+                if (totalCategory === 0) {
+                    tableData = `
+                        <tr>
+                            <td colspan="4">
+                                <p>ไม่พบข้อมูล</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    tableData = response.allCategory
+                        .slice(startIndex, endIndex)
+                        .map(category => {
+                            return `
+                            <tr class="popup" onclick="showPopup(${category.menu_category_id});">
+                                <td>${category.menu_category_name}</td>
+                            </tr>
+                            `
+                        }).join('');
+                }
+
+                $('#category-all').html(tableData) // Update the content
+
+                const totalPages = Math.ceil(totalCategory / itemsPerPage);
+
+                $('#pagination').empty();
+                generatePagination(totalPages)
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        })
+    }
+
+
+
+    $(document).on('click', '.page-btn-all', function() {
+        currentPage = parseInt($(this).data('page'))
+        getAllcategory(searchValue);
+    })
+
+
+
+    function generatePagination(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
+
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
+                        `);
+            }
+
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+            }
+
+            // Add the current page
+            $('#pagination').append(`
+                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
+                        `);
+
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
+                        `);
+            }
+
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
+                            <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
+                        `);
+            }
+        }
+    }
+
+    $('#searchInput').on('keyup', function() {
+        searchValue = $(this).val();
+        getAllcategory(searchValue);
+    });
+
+    $('#endPopupclickChange').on('click', function() {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/food/category/edit/change',
+            data: {
+                newNameCategory: $('#inputNewNameCategory').val(),
+                menuCategoryIdToChange: menuCategoryIdToChange,
+            },
+            success: function(response) {
+                errorInput = response.sameNameIndatabase;
+                if (errorInput == true) {
+                    $('#displayError').html(`${response.errorMessage}`);
+                    hidShowError();
+                }else{
+                    $('#exampleModal').modal('hide');
+                }
+                getAllcategory(searchValue);
+            },
+            error: function(error) {
+
+            }
+        })
+    });
+
+    $(document).ready(function() {
+        getAllcategory(searchValue);
+    })
+</script>
 
 </html>

@@ -286,7 +286,7 @@ use Illuminate\Support\Facades\DB;
             <div class="col-lg-12">
                 <label for="selectSearch">ค้นหาด้วย</label>
                 <select id="input1" name="selectSearch">
-                    <option value="name">ชื่อโต๊ะ</option>
+                    <option value="name">หมายเลขโต๊ะ</option>
                     <option value="status">สถานะโต๊ะ</option>
                 </select>
                 <br><br>
@@ -410,13 +410,13 @@ use Illuminate\Support\Facades\DB;
                 valueOfType: $('#searchInputSelect').val()
             },
             success: function(response) {
-                console.log("typeValue: "+response.one+",valueOfType:"+response.two);
+                console.log("typeValue: " + response.one + ",valueOfType:" + response.two);
                 // Assuming response.tables_status is an array of objects
                 const statusMapping = [
                     null, // 0 index is not used
                     'สั่ง',
                     'กำลังปรุง',
-                    'เสริฟแล้ว',
+                    'เสิร์ฟแล้ว',
                     'รอชำระเงิน'
                 ];
                 const totalTables = response.allTables.length;
@@ -425,11 +425,20 @@ use Illuminate\Support\Facades\DB;
                 }
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
-                let tableData = response.allTables
-                    .slice(startIndex, endIndex)
-                    .map(table => {
-                        //console.log(table.table_name+" "+table.table_id);
-                        return `
+                let tableData = '';
+                if (totalTables === 0) {
+                    tableData = `
+                        <tr>
+                            <td colspan="4">
+                                <p>ไม่พบข้อมูล</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    tableData = response.allTables
+                        .slice(startIndex, endIndex)
+                        .map(table => {
+                            //console.log(table.table_name+" "+table.table_id);
+                            return `
                             <tr>
                                 <td class="text-center ">
                                 <p >${table.table_name}</p>
@@ -461,9 +470,10 @@ use Illuminate\Support\Facades\DB;
                                 </ul>` : ''}
                                 </td>
                             </tr>`
-                    })
+                        }).join('');
+                }
 
-                $('#table-all').html(tableData.join('')) // Update the content
+                $('#table-all').html(tableData) // Update the content
 
                 const totalPages = Math.ceil(totalTables / itemsPerPage);
                 $('#pagination').empty();
@@ -485,7 +495,7 @@ use Illuminate\Support\Facades\DB;
                     null, // 0 index is not used
                     'สั่ง',
                     'กำลังปรุง',
-                    'เสริฟแล้ว',
+                    'เสิร์ฟแล้ว',
                     'รอชำระเงิน'
                 ];
 
@@ -501,7 +511,7 @@ use Illuminate\Support\Facades\DB;
                     tableData = `
                         <tr>
                             <td colspan="4">
-                                <p>No data</p>
+                                <p>ไม่พบข้อมูล</p>
                             </td>
                         </tr>`;
                 } else {

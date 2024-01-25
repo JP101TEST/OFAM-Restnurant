@@ -190,6 +190,11 @@ $employee = DB::table('employees')
         .error-input {
             border: 1px solid red;
         }
+
+        .menu-size-edit{
+            width: 200px;
+            height: auto;
+        }
     </style>
 </head>
 

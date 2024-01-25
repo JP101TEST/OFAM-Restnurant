@@ -85,6 +85,16 @@ class ManagementAdminRoute extends Controller
         }
     }
 
+    public function goFoodCategoryEditpageWithGet(){
+        if (empty(session('User'))) {
+            return redirect()->route('login');
+        } elseif (session('User')[0]['employees_id'] != 'admin') {
+            return view('management/management_oder_food_list');
+        } else {
+            return view('management/admin_page/management_food_category');
+        }
+    }
+
     public function goFoodMenupageWithGet()
     {
         if (empty(session('User'))) {

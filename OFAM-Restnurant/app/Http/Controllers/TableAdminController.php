@@ -75,8 +75,8 @@ class TableAdminController extends Controller
             ->where('table_id', '!=', $table_id)
             ->count();
         if ($tableName_duplicate_same_id > 0) {
-            session(['errorTableName' => 'ชื่อ '.$tableName.' นี้มีการใช้งานแล้ว']);
-            return redirect()->route('management.admin.table.edit',['tables_id'=> $table_id]);
+            session(['errorTableName' => 'ชื่อ ' . $tableName . ' นี้มีการใช้งานแล้ว']);
+            return redirect()->route('management.admin.table.edit', ['tables_id' => $table_id]);
         }
         if ($tableName != null && $tableName != $table[0]->table_name) {
             //print('Update name' . '<br>');
@@ -116,8 +116,14 @@ class TableAdminController extends Controller
 
     public function getAllTables()
     {
-        $allTables = Table::orderBy('table_name', 'asc')
-            ->get();
+        $typeValue = request('typeValue');
+        $valueOfType = request('valueOfType');
+        $allTables = Table::orderBy('table_name', 'asc');
+        if ($typeValue == 'status') {
+            $allTables = $allTables->where('tables_status', $valueOfType)->get();
+        } else {
+            $allTables = $allTables->get();
+        }
         return response()->json(['allTables' => $allTables]);
     }
 

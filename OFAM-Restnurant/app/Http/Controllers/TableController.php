@@ -29,7 +29,7 @@ class TableController extends Controller
             ->leftJoin(DB::raw('(SELECT
         table_id,
         MIN(
-            CASE food_order_status WHEN "สั่ง" THEN 1 WHEN "กำลังปรุง" THEN 2 WHEN "เสริฟแล้ว" THEN 3 WHEN "รอชำระเงิน" THEN 4 WHEN "ชำระเงินเรียบร้อย" THEN 5
+            CASE food_order_status WHEN "สั่ง" THEN 1 WHEN "กำลังปรุง" THEN 2 WHEN "เสิร์ฟแล้ว" THEN 3 WHEN "รอชำระเงิน" THEN 4 WHEN "ชำระเงินเรียบร้อย" THEN 5
         END
     ) AS food_order_status
     FROM
@@ -162,7 +162,7 @@ END;
             ->leftJoin(DB::raw('(SELECT
         table_id,
         MIN(
-            CASE food_order_status WHEN "สั่ง" THEN 1 WHEN "กำลังปรุง" THEN 2 WHEN "เสริฟแล้ว" THEN 3 WHEN "รอชำระเงิน" THEN 4 WHEN "ชำระเงินเรียบร้อย" THEN 5
+            CASE food_order_status WHEN "สั่ง" THEN 1 WHEN "กำลังปรุง" THEN 2 WHEN "เสิร์ฟแล้ว" THEN 3 WHEN "รอชำระเงิน" THEN 4 WHEN "ชำระเงินเรียบร้อย" THEN 5
         END
     ) AS food_order_status
     FROM

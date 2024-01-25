@@ -986,7 +986,7 @@ foreach ($decodedArray as $value) {
                 if (response.orderList && response.orderList.length > 0) {
                     tableData = response.orderList.map(menu => {
                         tablePrice += (menu.menu_price * menu.food_amount);
-                        if (menu.food_order_status != 'เสริฟแล้ว') {
+                        if (menu.food_order_status != 'เสิร์ฟแล้ว') {
                             allServe = false;
                         }
                         if (menu.food_order_status != 'รอชำระเงิน') {
@@ -1004,7 +1004,7 @@ foreach ($decodedArray as $value) {
                                 <p class="text-center" style="width: 30px;" >จำนวน:${menu.food_amount}<br>ราคา:฿${menu.menu_price}<br>ราคารวม:฿${menu.menu_price*menu.food_amount}</p>
                                 </div>
                                 <div class="col d-flex align-items-center justify-content-end" style="width: 50px;">
-                                    <p type="button" style="width: 100px;" ${menu.food_order_status == 'สั่ง' ? 'class="btn btn-danger text-white"' : menu.food_order_status == 'กำลังปรุง' ? 'class="btn btn-warning text-white"' : menu.food_order_status == 'เสริฟแล้ว' ? 'class="btn btn-info text-white"' :menu.food_order_status == 'รอชำระเงิน' ? 'class="btn btn-primary text-white"' :'class="btn "'}>${menu.food_order_status}</p>
+                                    <p type="button" style="width: 100px;" ${menu.food_order_status == 'สั่ง' ? 'class="btn btn-danger text-white"' : menu.food_order_status == 'กำลังปรุง' ? 'class="btn btn-warning text-white"' : menu.food_order_status == 'เสิร์ฟแล้ว' ? 'class="btn btn-info text-white"' :menu.food_order_status == 'รอชำระเงิน' ? 'class="btn btn-primary text-white"' :'class="btn "'}>${menu.food_order_status}</p>
                                 </div>
                             </div>
                         </div>`;

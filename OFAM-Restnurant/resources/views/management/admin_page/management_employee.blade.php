@@ -316,39 +316,39 @@
         return selectedValue; // Return the selected value
     }
 
-    $(document).ready(function() {
-        let currentPage = 1 // Track the current page
-        const itemsPerPage = 5 // Number of items to display per page
 
-        //get data from text search
-        $('#searchInput').on('keyup', function() {
-            inputValue = $(this).val();
-            if (/^\/+$/.test(inputValue)) {
-                inputSearchValue = 'null'; // Update inputSearchValue
-            } else {
-                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
-            }
-        });
+    let currentPage = 1 // Track the current page
+    const itemsPerPage = 5 // Number of items to display per page
+
+    //get data from text search
+    $('#searchInput').on('keyup', function() {
+        inputValue = $(this).val();
+        if (/^\/+$/.test(inputValue)) {
+            inputSearchValue = 'null'; // Update inputSearchValue
+        } else {
+            inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
+        }
+    });
 
 
 
-        function getAllEmployee() {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/employee/get-all-employee',
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalEmployees = response.allEmployees.length
-                    if (currentPage > Math.ceil(totalEmployees / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalEmployees);
+    function getAllEmployee() {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/employee/get-all-employee',
+            success: function(response) {
+                // Assuming response.tables_status is an array of objects
+                const totalEmployees = response.allEmployees.length
+                if (currentPage > Math.ceil(totalEmployees / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalEmployees);
 
-                    let tableData = response.allEmployees
-                        .slice(startIndex, endIndex)
-                        .map(employee => {
-                            return `
+                let tableData = response.allEmployees
+                    .slice(startIndex, endIndex)
+                    .map(employee => {
+                        return `
                             <tr>
                         <td>${employee.employees_id}</td>
                         <td>
@@ -365,46 +365,46 @@
                             </ul>
                         </td>
                     </tr>`
-                        })
+                    })
 
-                    $('#table-employees').html(tableData.join('')) // Update the content
+                $('#table-employees').html(tableData.join('')) // Update the content
 
-                    const totalPages = Math.ceil(totalEmployees / itemsPerPage);
+                const totalPages = Math.ceil(totalEmployees / itemsPerPage);
 
-                    $('#pagination').empty();
-                    generatePagination(totalPages)
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                $('#pagination').empty();
+                generatePagination(totalPages)
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        })
+    }
+
+    function getSearchEmployee(selectedSearchValue, inputSearchValue) {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/employee/get-all-employee,category=' + selectedSearchValue + '/search=' + inputSearchValue,
+            success: function(response) {
+                // Assuming response.tables_status is an array of objects
+                const totalEmployees = response.allEmployees.length
+                if (currentPage > Math.ceil(totalEmployees / itemsPerPage)) {
+                    currentPage = 1;
                 }
-            })
-        }
-
-        function getSearchEmployee(selectedSearchValue, inputSearchValue) {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/employee/get-all-employee,category=' + selectedSearchValue + '/search=' + inputSearchValue,
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalEmployees = response.allEmployees.length
-                    if (currentPage > Math.ceil(totalEmployees / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalEmployees);
-                    let tableData;
-                    if (totalEmployees === 0) {
-                        tableData = `
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalEmployees);
+                let tableData;
+                if (totalEmployees === 0) {
+                    tableData = `
                         <tr>
                             <td colspan="4">
-                                <p>No data</p>
+                                <p>ไม่พบข้อมูล</p>
                             </td>
                         </tr>`;
-                    } else {
-                        tableData = response.allEmployees
-                            .slice(startIndex, endIndex)
-                            .map(employee => {
-                                return `
+                } else {
+                    tableData = response.allEmployees
+                        .slice(startIndex, endIndex)
+                        .map(employee => {
+                            return `
                                 <tr>
                         <td>${employee.employees_id}</td>
                         <td>
@@ -421,136 +421,141 @@
                             </ul>
                         </td>
                     </tr>`
-                            }).join('');
-                    }
-                    $('#table-employees').html(tableData) // Update the content
-
-                    const totalPages = Math.ceil(totalEmployees / itemsPerPage);
-                    $('#pagination').empty();
-                    generatePaginationSearch(totalPages)
-
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                        }).join('');
                 }
-            })
-        }
+                $('#table-employees').html(tableData) // Update the content
 
-        $(document).on('click', '.page-btn-all', function() {
-            currentPage = parseInt($(this).data('page'))
-            getAllEmployee();
+                const totalPages = Math.ceil(totalEmployees / itemsPerPage);
+                $('#pagination').empty();
+                generatePaginationSearch(totalPages)
+
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
         })
+    }
 
-        $(document).on('click', '.page-btn-Search', function() {
-            currentPage = parseInt($(this).data('page'))
-            getSearchEmployee(selectedSearchValue, inputSearchValue);
-        })
+    $(document).on('click', '.page-btn-all', function() {
+        currentPage = parseInt($(this).data('page'))
+        getAllEmployee();
+    })
 
-        function generatePagination(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
+    $(document).on('click', '.page-btn-Search', function() {
+        currentPage = parseInt($(this).data('page'))
+        getSearchEmployee(selectedSearchValue, inputSearchValue);
+    })
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+    function generatePagination(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
                         `);
-                }
             }
         }
+    }
 
-        function generatePaginationSearch(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
+    function generatePaginationSearch(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
                         `);
-                }
             }
         }
+    }
 
+    $('#searchInput').on('keyup', function() {
+        selectedSearchValue = bindInputChange('inputSelected');
+        inputSearchValue = $('#searchInput').val();
+        if (inputSearchValue == null || inputSearchValue === '') {
+            getAllEmployee();
+        } else {
+            getSearchEmployee(selectedSearchValue, inputSearchValue);
+        }
+    });
 
+    $('#inputSelected').on('change', function() {
+        selectedSearchValue = bindInputChange('inputSelected');
+        inputSearchValue = $('#searchInput').val();
+        if (inputSearchValue == null || inputSearchValue === '') {
+            getAllEmployee();
+        } else {
+            getSearchEmployee(selectedSearchValue, inputSearchValue);
+        }
+    });
 
+    $(document).ready(function() {
         getAllEmployee();
-
-        //loop call read data 3sec
-        setInterval(function() {
-            selectedSearchValue = bindInputChange('inputSelected');
-            /*console.log("selectedSearchValue: " + selectedSearchValue);
-            console.log("inputSearchValue: " + inputSearchValue);*/
-            if (inputSearchValue == null || inputSearchValue === '') {
-                getAllEmployee();
-            } else {
-                getSearchEmployee(selectedSearchValue, inputSearchValue);
-            }
-        }, 2000)
-
-
     })
 </script>
 

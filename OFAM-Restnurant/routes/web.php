@@ -61,9 +61,11 @@ Route::get('/update/table/status/table_id={table_id}/table_status={table_status}
 
 Route::get('/management-admin/food', [ManagementAdminRoute::class, 'goFoodpageWithGet'])->name('management.admin.food');
 Route::get('/management-admin/food/get-all-food,category={category}', [FoodMenuAdminController::class, 'getAllFood']);
-Route::get('/management-admin/food/get-all-food,category={category}/search={search}', [FoodMenuAdminController::class, 'getFoodFromSearch']);
 Route::get('/management-admin/food/menu_id={menu_id},new_status={new_status}', [FoodMenuAdminController::class, 'changeMenuStatus']);
 Route::get('/management-admin/food/category', [ManagementAdminRoute::class, 'goFoodCategorypageWithGet'])->name('management.admin.food.category');
+Route::get('/management-admin/food/category/edit', [ManagementAdminRoute::class, 'goFoodCategoryEditpageWithGet'])->name('management.admin.food.category.edit');
+Route::get('/management-admin/food/category/edit/get-all', [FoodMenuAdminController::class, 'getAllcategory']);
+Route::get('/management-admin/food/category/edit/change', [FoodMenuAdminController::class, 'categoryChange']);
 Route::post('/management-admin/food/category', [FoodCategoryAdminController::class, 'addCategory'])->name('management.admin.food.category.add.postData');
 Route::get('/management-admin/food/menu', [ManagementAdminRoute::class, 'goFoodMenupageWithGet'])->name('management.admin.food.menu');
 Route::post('/management-admin/food/menu', [FoodMenuAdminController::class, 'addMenu'])->name('management.admin.food.menu.add.postData');

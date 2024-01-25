@@ -443,7 +443,7 @@ if (count($order) == 0) {
                         <tr>
                             <td><img style="border-radius: 10px;width: 40px;height: 40px;" src="{{ asset("images/menu/{$item['menu_image']}") }}"> {{ $item['menu_name'] }} </td>
                             <td>{{ $item['food_amount'] }} </td>
-                            <td>ต่อชิ้น={{ $item['menu_price'] }} รวม={{ $item['menu_price']*$item['food_amount'] }}</td><br>
+                            <td>ชิ้นละ={{ $item['menu_price'] }} รวม={{ $item['menu_price']*$item['food_amount'] }}</td><br>
                         </tr>
                         @endforeach
                     </tbody>

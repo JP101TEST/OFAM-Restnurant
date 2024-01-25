@@ -284,7 +284,7 @@ $food_orders = DB::table('food_orders')
                     <option value="0">ทั้งหมด</option>
                     <option value="1">สั่ง</option>
                     <option value="2">กำลังปรุง</option>
-                    <option value="3">เสริฟแล้ว</option>
+                    <option value="3">เสิร์ฟแล้ว</option>
                 </select><br><br>
                 <table class="table table-bordered">
                     <thead>
@@ -413,7 +413,7 @@ $food_orders = DB::table('food_orders')
                                 <p>${menu.food_amount}</p><br>
                                 </td>
                                 <td>
-                                <p style="text-align: center;" ${menu.food_order_status == 'สั่ง' ? 'class="bg-danger text-white"' : menu.food_order_status == 'กำลังปรุง' ? 'class="bg-warning text-white"' : menu.food_order_status == 'เสริฟแล้ว' ? 'class="bg-info text-white"' :menu.food_order_status == 'รอชำระเงิน' ? 'class="bg-primary text-white"' :'class=""'} >${menu.food_order_status != null ?menu.food_order_status:'-'}</p>
+                                <p style="text-align: center;" ${menu.food_order_status == 'สั่ง' ? 'class="bg-danger text-white"' : menu.food_order_status == 'กำลังปรุง' ? 'class="bg-warning text-white"' : menu.food_order_status == 'เสิร์ฟแล้ว' ? 'class="bg-info text-white"' :menu.food_order_status == 'รอชำระเงิน' ? 'class="bg-primary text-white"' :'class=""'} >${menu.food_order_status != null ?menu.food_order_status:'-'}</p>
                                 ${menu.food_order_status == 'สั่ง' ?
                                 `<label style="margin-left: 10%;">
                                     <input type="radio" name="status" " onclick="deleteOder(${menu.food_order_id})">
@@ -424,7 +424,7 @@ $food_orders = DB::table('food_orders')
                                 </label><br><br>`: menu.food_order_status == 'กำลังปรุง' ?
                                 `<label style="margin-left: 10%;">
                                     <input type="radio" name="status" " onclick="changeStatusOder(${menu.food_order_id},3)">
-                                    เสริฟแล้ว
+                                    เสิร์ฟแล้ว
                                 </label><br><br>` :
                                 ``}
                                 </td>

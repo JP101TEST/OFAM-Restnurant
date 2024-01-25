@@ -309,6 +309,7 @@ $menu_categories = menu_category::all();
                     <ul class="container navbar-nav me-auto">
                         <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-green justify-content-center" href="{{ route('management.admin.food.category')}}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">เพิ่มหมวดหมู่</a></li>
                         <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-green justify-content-center" href="{{ route('management.admin.food.menu')}}"><img class="icon-size spade-bar" src="{{ asset('images/food-tray.png') }}" alt="">เพิ่มรายการอาหาร</a></li>
+                        <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="{{ route('management.admin.food.category.edit')}}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไขหมวดหมู่</a></li>
                     </ul>
                     <!--
                     <ul class="container justify-content-end navbar-nav me-auto">
@@ -390,6 +391,8 @@ $menu_categories = menu_category::all();
 <script>
     var inputSearchValue = null;
     var selectedSearchValue = bindInputChange('inputSelected');
+    let currentPage = 1 // Track the current page
+    const itemsPerPage = 5 // Number of items to display per page
 
     function bindInputChange(inputId) {
         const selectedValue = $('#' + inputId).val();
@@ -417,42 +420,54 @@ $menu_categories = menu_category::all();
                 success: function(response) {},
                 error: function(error) {}
             });
+            getAllMenu(selectedSearchValue);
         }
     }
 
-    $(document).ready(function() {
-        let currentPage = 1 // Track the current page
-        const itemsPerPage = 5 // Number of items to display per page
+    //get data from text search
+    $('#searchInput').on('keyup', function() {
+        inputValue = $(this).val();
+        console.log();
+        if (/^\/+$/.test(inputValue)) {
+            inputSearchValue = 'null'; // Update inputSearchValue
+        } else {
+            inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
+        }
+        getAllMenu(selectedSearchValue);
+    });
 
+    $('#inputSelected').on('change', function() {
+        selectedSearchValue = $(this).val();
+        getAllMenu(selectedSearchValue);
+    })
 
+    function getAllMenu(selectedSearchValue) {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/food/get-all-food,category=' + selectedSearchValue,
+            data: {
+                inputSearchValue: inputSearchValue,
+            },
+            success: function(response) {
+                // Assuming response.tables_status is an array of objects
+                console.log(response.test);
+                const totalMenu = response.allMenu.length
+                if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
 
-
-        //get data from text search
-        $('#searchInput').on('keyup', function() {
-            inputValue = $(this).val();
-            if (/^\/+$/.test(inputValue)) {
-                inputSearchValue = 'null'; // Update inputSearchValue
-            } else {
-                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
-            }
-        });
-
-
-
-        function getAllMenu(selectedSearchValue) {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/food/get-all-food,category=' + selectedSearchValue,
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalMenu = response.allMenu.length
-                    if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
-
-                    let tableData = response.allMenu
+                let tableData = ``;
+                if (totalMenu === 0) {
+                    tableData = `
+                        <tr>
+                            <td colspan="4">
+                                <p>ไม่พบข้อมูล</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    tableData = response.allMenu
                         .slice(startIndex, endIndex)
                         .map(menu => {
                             return `
@@ -486,205 +501,78 @@ $menu_categories = menu_category::all();
                             </ul>
                         </td>
                     </tr>`
-                        })
-
-                    $('#table-menu').html(tableData.join('')) // Update the content
-
-                    const totalPages = Math.ceil(totalMenu / itemsPerPage);
-
-                    $('#pagination').empty();
-                    generatePagination(totalPages)
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                        }).join('');
                 }
-            })
-        }
 
-        function getSearchFood(selectedSearchValue, inputSearchValue) {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/food/get-all-food,category=' + selectedSearchValue + '/search=' + inputSearchValue,
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalMenu = response.allMenu.length
-                    if (currentPage > Math.ceil(totalMenu / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalMenu);
-                    let tableData;
-                    if (totalMenu === 0) {
-                        tableData = `
-                        <tr>
-                            <td colspan="4">
-                                <p>No data</p>
-                            </td>
-                        </tr>`;
-                    } else {
-                        tableData = response.allMenu
-                            .slice(startIndex, endIndex)
-                            .map(menu => {
-                                return `
-                            <tr>
-                        <td>${menu.menu_category_name}</td>
-                        <td>ชื่อ:${menu.menu_name }<br>
-                            <img class="menu-size" src="/images/menu/${menu.menu_image}" alt=""><br>
-                            ราคา:${menu.price}
-                        </td>
-                        <td>
-                        <p ${menu.menu_status == 'ยกเลิกให้บริการ' ? 'class="bg-danger text-white" style="text-align: center;"' : menu.menu_status == 'พร้อมให้บริการ' ? 'class="bg-success text-white" style="text-align: center;"' : 'class="bg-dark text-white" style="text-align: center;"'} >${menu.menu_status}</p>
-                        <!--${menu.menu_status}--><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},1)">
-                        ยกเลิกให้บริการ
-                        </label><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},2)">
-                        พร้อมให้บริการ
-                        </label><br>
-                        <label>
-                        <input type="radio" name="status" onclick="changeMenuStatus(${menu.menu_id},3)">
-                        หมด
-                        </label></td>
-                        <td>
-                            <ul class="container navbar-nav me-auto">
-                                <ul class="container navbar-nav me-auto">
-                                    <li class="nav-item text-center"><a class="nav-link custom-nav-link bg-yellow justify-content-center" href="/management-admin/food/menu/edit/MenuId=${menu.menu_id}"><img class="icon-size spade-bar" src="{{ asset('images/menu.png') }}" alt="">แก้ไข</a></li>
-                                </ul>
-                            </ul>
-                        </td>
-                    </tr>`
-                            }).join('');
-                    }
-                    $('#table-menu').html(tableData) // Update the content
+                $('#table-menu').html(tableData) // Update the content
 
-                    const totalPages = Math.ceil(totalMenu / itemsPerPage);
-                    $('#pagination').empty();
-                    generatePaginationSearch(totalPages)
+                const totalPages = Math.ceil(totalMenu / itemsPerPage);
 
-                },
-                error: function(error) {
-                    // Handle error if necessary
-                }
-            })
-        }
-
-        $(document).on('click', '.page-btn-all', function() {
-            currentPage = parseInt($(this).data('page'))
-            getAllMenu(selectedSearchValue);
+                $('#pagination').empty();
+                generatePagination(totalPages)
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
         })
+    }
 
-        $(document).on('click', '.page-btn-Search', function() {
-            currentPage = parseInt($(this).data('page'))
-            getSearchFood(selectedSearchValue, inputSearchValue);
-        })
 
-        function generatePagination(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+    $(document).on('click', '.page-btn-all', function() {
+        currentPage = parseInt($(this).data('page'))
+        getAllMenu(selectedSearchValue);
+    })
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+
+
+    function generatePagination(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
+
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
                         `);
-                }
             }
         }
-
-        function generatePaginationSearch(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
-
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
-
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
-                            <li class="page-item page-btn-Search" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
-                        `);
-                }
-
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
-                            <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
-                        `);
-                }
-
-                // Add the current page
-                $('#pagination').append(`
-                            <li class="page-item active"><span class="page-link">${currentPage}</span></li>
-                        `);
-
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
-                            <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
-                        `);
-                }
-
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
-                            <li class="page-item page-btn-Search" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
-                        `);
-                }
-            }
-        }
+    }
 
 
-
+    $(document).ready(function() {
         getAllMenu(selectedSearchValue);
-
-        //loop call read data 3sec
-        setInterval(function() {
-            selectedSearchValue = bindInputChange('inputSelected');
-            /*console.log("selectedSearchValue: " + selectedSearchValue);
-            console.log("inputSearchValue: " + inputSearchValue);*/
-            if (inputSearchValue == null || inputSearchValue === '') {
-                getAllMenu(selectedSearchValue);
-            } else {
-                getSearchFood(selectedSearchValue, inputSearchValue);
-            }
-        }, 2000)
-
-
     })
 </script>
 

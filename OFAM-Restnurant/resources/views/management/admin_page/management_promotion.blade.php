@@ -409,24 +409,32 @@ $promotions = promotion::select(
         return selectedValue; // Return the selected value
     }
 
-    $(document).ready(function() {
-        let currentPage = 1 // Track the current page
-        const itemsPerPage = 5 // Number of items to display per page
 
-        function getAllPromotion() {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/promotion/get-all-promotion',
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalPromotions = response.allPromotions.length
-                    if (currentPage > Math.ceil(totalPromotions / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalPromotions);
+    let currentPage = 1 // Track the current page
+    const itemsPerPage = 10 // Number of items to display per page
 
-                    let tableData = response.allPromotions
+    function getAllPromotion() {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/promotion/get-all-promotion',
+            success: function(response) {
+                // Assuming response.tables_status is an array of objects
+                const totalPromotions = response.allPromotions.length
+                if (currentPage > Math.ceil(totalPromotions / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalPromotions);
+                let tableData;
+                if (totalPromotions === 0) {
+                    tableData = `
+                        <tr>
+                            <td colspan="4">
+                                <p>ไม่พบข้อมูล</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    tableData = response.allPromotions
                         .slice(startIndex, endIndex)
                         .map(promotion => {
                             return `
@@ -458,47 +466,47 @@ $promotions = promotion::select(
                                             </table>
                                         </td>
                                     </tr>`
-                        })
-
-                    $('#table-promotion').html(tableData.join('')) // Update the content
-
-                    const totalPages = Math.ceil(totalPromotions / itemsPerPage);
-
-                    $('#pagination').empty();
-                    generatePagination(totalPages)
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                        }).join('');
                 }
-            })
-        }
+                $('#table-promotion').html(tableData) // Update the content
 
-        function getSearchPromotion(searchInput, inputSelectedTypeSearch) {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/promotion/get-all-promotion/searchType=' + inputSelectedTypeSearch + ',search=' + searchInput,
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalPromotions = response.allPromotions.length
-                    if (currentPage > Math.ceil(totalPromotions / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalPromotions);
+                const totalPages = Math.ceil(totalPromotions / itemsPerPage);
 
-                    let tableData;
-                    if (totalPromotions === 0) {
-                        tableData = `
+                $('#pagination').empty();
+                generatePagination(totalPages)
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        })
+    }
+
+    function getSearchPromotion(searchInput, inputSelectedTypeSearch) {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/promotion/get-all-promotion/searchType=' + inputSelectedTypeSearch + ',search=' + searchInput,
+            success: function(response) {
+                // Assuming response.tables_status is an array of objects
+                const totalPromotions = response.allPromotions.length
+                if (currentPage > Math.ceil(totalPromotions / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalPromotions);
+
+                let tableData;
+                if (totalPromotions === 0) {
+                    tableData = `
                         <tr>
                             <td colspan="4">
-                                <p>No data</p>
+                                <p>ไม่พบข้อมูล</p>
                             </td>
                         </tr>`;
-                    } else {
-                        tableData = response.allPromotions
-                            .slice(startIndex, endIndex)
-                            .map(promotion => {
-                                return `
+                } else {
+                    tableData = response.allPromotions
+                        .slice(startIndex, endIndex)
+                        .map(promotion => {
+                            return `
                             <tr>
                                         <td>
                                             ชื่อโปรโมชั่น: ${promotion.promotion_name}<br>
@@ -527,136 +535,143 @@ $promotions = promotion::select(
                                             </table>
                                         </td>
                                     </tr>`
-                            }).join('');
-                    }
-                    $('#table-promotion').html(tableData) // Update the content
-
-                    const totalPages = Math.ceil(totalPromotions / itemsPerPage);
-
-                    $('#pagination').empty();
-                    generatePaginationSearch(totalPages)
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                        }).join('');
                 }
-            })
-        }
+                $('#table-promotion').html(tableData) // Update the content
 
-        $(document).on('click', '.page-btn-all', function() {
-            currentPage = parseInt($(this).data('page'))
-            getAllPromotion();
+                const totalPages = Math.ceil(totalPromotions / itemsPerPage);
+
+                $('#pagination').empty();
+                generatePaginationSearch(totalPages)
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
         })
+    }
 
-        $(document).on('click', '.page-btn-Search', function() {
-            currentPage = parseInt($(this).data('page'))
-            getSearchPromotion(searchInput, inputSelectedTypeSearch);
-        })
+    $(document).on('click', '.page-btn-all', function() {
+        currentPage = parseInt($(this).data('page'))
+        getAllPromotion();
+    })
 
-        function generatePagination(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
+    $(document).on('click', '.page-btn-Search', function() {
+        currentPage = parseInt($(this).data('page'))
+        getSearchPromotion(searchInput, inputSelectedTypeSearch);
+    })
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+    function generatePagination(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
                         `);
-                }
             }
         }
+    }
 
-        function generatePaginationSearch(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
+    function generatePaginationSearch(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${1}"><a class="page-link" href="#">&lt;&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-Search" data-page="${totalPages}"><a class="page-link" href="#">&gt;&gt;</a></li>
                         `);
-                }
             }
         }
+    }
 
+    $('#searchInput').on('keyup', function() {
+        inputSelectedTypeSearch = bindInputChange('inputSelectedTypeSearch');
+        searchInput = bindInputChange('searchInput');
+        if (searchInput == null || searchInput === '') {
+            getAllPromotion();
+        } else {
+            getSearchPromotion(searchInput, inputSelectedTypeSearch);
+        }
+    });
+
+    $('#inputSelectedTypeSearch').on('change', function() {
+        inputSelectedTypeSearch = bindInputChange('inputSelectedTypeSearch');
+        searchInput = bindInputChange('searchInput');
+        if (searchInput == null || searchInput === '') {
+            getAllPromotion();
+        } else {
+            getSearchPromotion(searchInput, inputSelectedTypeSearch);
+        }
+    });
+
+    $(document).ready(function() {
         inputSelectedTypeSearch = bindInputChange('inputSelectedTypeSearch');
         searchInput = bindInputChange('searchInput');
         getAllPromotion();
-
-        setInterval(function() {
-            inputSelectedTypeSearch = bindInputChange('inputSelectedTypeSearch');
-            searchInput = bindInputChange('searchInput');
-            /*
-                        console.log("inputSelectedTypeSearch: " + inputSelectedTypeSearch);
-                        console.log("searchInput: " + searchInput);
-            */
-            if (searchInput == null || searchInput === '') {
-                getAllPromotion();
-            } else {
-                getSearchPromotion(searchInput, inputSelectedTypeSearch);
-            }
-        }, 2000)
     })
 </script>
 

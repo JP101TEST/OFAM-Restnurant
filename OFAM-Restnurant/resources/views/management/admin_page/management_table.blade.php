@@ -265,12 +265,18 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
 
                 <label for="selectSearch">ค้นหาด้วย</label>
                 <select id="input1" name="selectSearch">
-                    <option value="0">ชื่อโต๊ะ</option>
-                    <option value="1">สถานะโต๊ะ</option>
+                    <option value="name">หมายเลขโต๊ะ</option>
+                    <option value="status">สถานะโต๊ะ</option>
                 </select>
                 <br><br>
+                <!--<div id="output1">Output will be displayed here for Select 1</div>-->
                 <label for="inputSearch">ค้นหา</label>
-                <input type="text" id="searchInput" name="inputSearch"><br>
+                <input type="text" id="searchInput" name="inputSearch" style="display: block;">
+                <select id="searchInputSelect" name="inputSearch" style="display: none;width: 130px;">
+                    <option value="ว่าง" selected>ว่าง</option>
+                    <option value="ไม่ว่าง">ไม่ว่าง</option>
+                    <option value="ยกเลิกการใช้งาน">ยกเลิกการใช้งาน</option>
+                </select><br>
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -296,13 +302,17 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
 <script>
     var inputValue;
     var selectedValue;
+    var selectedValueByOption = 'name';
+
+    let currentPage = 1 // Track the current page
+    const itemsPerPage = 7 // Number of items to display per page
 
     function bindInputChange(inputId) {
         const selectedValue = $('#' + inputId).val();
         return selectedValue; // Return the selected value
     }
 
-    function changeMenuStatus(id, value) {
+    function changeMenuStatus(id, value, typeShow) {
         var confirmation = confirm('คุณต้องการเปลี่ยนสถานะโต๊ะใช่หรือไม่');
         if (confirmation) {
             $.ajax({
@@ -311,42 +321,76 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                 success: function(response) {},
                 error: function(error) {}
             });
+            if (typeShow == 1) {
+                getAllTables();
+            } else {
+                getSearchTables(selectedValue);
+            }
         }
     }
 
+    //get data from text search
+    $('#searchInput').on('keyup', function() {
+        inputValue = $(this).val();
+        if (inputValue === '' || inputValue == null) {
+            getAllTables();
+        } else {
+            getSearchTables(selectedValue);
+        }
+    });
 
-
-
-    $(document).ready(function() {
-
-        let currentPage = 1 // Track the current page
-        const itemsPerPage = 5 // Number of items to display per page
-
-
-
-        //get data from text search
-        $('#searchInput').on('keyup', function() {
-            inputValue = $(this).val();
-            if (/^\/+$/.test(inputValue)) {
-                inputSearchValue = 'null'; // Update inputSearchValue
+    $('#input1').on('change', function() {
+        let textSearch = document.getElementById('searchInput');
+        let selectSearch = document.getElementById('searchInputSelect');
+        // console.log(inputValue);
+        selectedValueByOption = $(this).val();
+        if (selectedValueByOption == 'name') {
+            textSearch.style.display = 'block';
+            selectSearch.style.display = 'none';
+            if (inputValue == null || inputValue === '') {
+                getAllTables();
             } else {
-                inputSearchValue = inputValue; // Update inputSearchValue with the actual input value
+                getSearchTables(selectedValue);
             }
-        });
+        } else {
+            textSearch.style.display = 'none';
+            selectSearch.style.display = 'block';
+            inputValue = '';
+            $('#searchInput').val('');
+            getAllTables();
+        }
+    })
 
-        function getAllTables() {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/table/get-all-tables',
-                success: function(response) {
-                    // Assuming response.tables_status is an array of objects
-                    const totalTables = response.allTables.length;
-                    if (currentPage > Math.ceil(totalTables / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage;
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
-                    let tableData = response.allTables
+    $('#searchInputSelect').on('change', function() {
+        getAllTables();
+    })
+
+    function getAllTables() {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/table/get-all-tables',
+            data: {
+                typeValue: selectedValueByOption,
+                valueOfType: $('#searchInputSelect').val()
+            },
+            success: function(response) {
+                // Assuming response.tables_status is an array of objects
+                const totalTables = response.allTables.length;
+                if (currentPage > Math.ceil(totalTables / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
+                let tableData = '';
+                if (totalTables === 0) {
+                    tableData = `
+                        <tr>
+                            <td colspan="4">
+                                <p>ไม่พบข้อมูล</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    tableData = response.allTables
                         .slice(startIndex, endIndex)
                         .map(table => {
                             //console.log(table.table_name+" "+table.table_id);
@@ -361,11 +405,11 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                                 <td>
                                 <p ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
                                 <label>
-                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},1)">
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},1,1)">
                                     ยกเลิก
                                 </label>
                                 <label>
-                                <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2)">
+                                <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2,1)">
                                     ว่าง
                                 </label>
                                 </td>
@@ -377,47 +421,48 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                                     </ul>
                                 </td>
                             </tr>`
-                        })
-
-                    $('#table-all').html(tableData.join('')) // Update the content
-
-                    const totalPages = Math.ceil(totalTables / itemsPerPage);
-                    $('#pagination').empty();
-                    generatePagination(totalPages)
-
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                        }).join('')
                 }
-            })
-        }
 
-        function getSearchTables(selectedValue) {
-            $.ajax({
-                type: 'GET',
-                url: '/management-admin/table/category=' + selectedValue + '/search=' + inputValue,
-                success: function(response) {
+                $('#table-all').html(tableData) // Update the content
 
-                    const totalTables = response.allTables.length
-                    if (currentPage > Math.ceil(totalTables / itemsPerPage)) {
-                        currentPage = 1;
-                    }
-                    const startIndex = (currentPage - 1) * itemsPerPage
-                    const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
+                const totalPages = Math.ceil(totalTables / itemsPerPage);
+                $('#pagination').empty();
+                generatePagination(totalPages)
 
-                    let tableData = '';
-                    if (totalTables === 0) {
-                        tableData = `
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
+        })
+    }
+
+    function getSearchTables(selectedValue) {
+        $.ajax({
+            type: 'GET',
+            url: '/management-admin/table/category=' + selectedValue + '/search=' + inputValue,
+            success: function(response) {
+
+                const totalTables = response.allTables.length
+                if (currentPage > Math.ceil(totalTables / itemsPerPage)) {
+                    currentPage = 1;
+                }
+                const startIndex = (currentPage - 1) * itemsPerPage
+                const endIndex = Math.min(startIndex + itemsPerPage, totalTables);
+
+                let tableData = '';
+                if (totalTables === 0) {
+                    tableData = `
                         <tr>
                             <td colspan="4">
-                                <p>No data</p>
+                                <p>ไม่พบข้อมูล</p>
                             </td>
                         </tr>`;
-                    } else {
-                        tableData = response.allTables
-                            .slice(startIndex, endIndex)
-                            .map(table => {
-                                return `
+                } else {
+                    tableData = response.allTables
+                        .slice(startIndex, endIndex)
+                        .map(table => {
+                            return `
                                 <tr>
                                 <td>
                                 ${table.table_name}
@@ -428,11 +473,11 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                                 <td>
                                 <p ${table.tables_status == 'ยกเลิกการใช้งาน' ? 'class="bg-danger text-white"' : table.tables_status == 'ว่าง' ? 'class="bg-success text-white"' : 'class="bg-warning text-white"'} >${table.tables_status}</p>
                                 <label>
-                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},1)">
+                                    <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},1,2)">
                                     ยกเลิก
                                 </label>
                                 <label>
-                                <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2)">
+                                <input type="radio" name="status" onclick="changeMenuStatus(${table.table_id},2,2)">
                                     ว่าง
                                 </label>
                                 </td>
@@ -444,136 +489,126 @@ $restaurantlogo = restaurantInfo::value('restaurant_logo');
                                     </ul>
                                 </td>
                                 </tr>`;
-                            })
-                            .join('');
-                    }
-
-                    $('#table-all').html(tableData); // Update the content
-                    const totalPages = Math.ceil(totalTables / itemsPerPage);
-                    $('#pagination').empty();
-                    generatePaginationUpdateTables(totalPages)
-                },
-                error: function(error) {
-                    // Handle error if necessary
+                        })
+                        .join('');
                 }
-            })
-        }
 
-        // Handle page navigation
-        //สำหรับ all
-        $(document).on('click', '.page-btn-all', function() {
-            currentPage = parseInt($(this).data('page'))
-            getAllTables();
+                $('#table-all').html(tableData); // Update the content
+                const totalPages = Math.ceil(totalTables / itemsPerPage);
+                $('#pagination').empty();
+                generatePaginationUpdateTables(totalPages)
+            },
+            error: function(error) {
+                // Handle error if necessary
+            }
         })
+    }
 
-        $(document).on('click', '.page-btn-update', function() {
-            currentPage = parseInt($(this).data('page'))
-            getUpdateTables(selectedValue);
-        })
+    // Handle page navigation
+    //สำหรับ all
+    $(document).on('click', '.page-btn-all', function() {
+        currentPage = parseInt($(this).data('page'))
+        getAllTables();
+    })
 
-        function generatePagination(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
+    $(document).on('click', '.page-btn-update', function() {
+        currentPage = parseInt($(this).data('page'))
+        getUpdateTables(selectedValue);
+    })
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+    function generatePagination(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${1}"><a class="page-link" href="#">&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-all" data-page="${totalPages}"><a class="page-link" href="#">&gt;</a></li>
                         `);
-                }
             }
         }
+    }
 
-        function generatePaginationUpdateTables(totalPages) {
-            if (totalPages > 1) {
-                $('#pagination').empty(); // Clear pagination links
+    function generatePaginationUpdateTables(totalPages) {
+        if (totalPages > 1) {
+            $('#pagination').empty(); // Clear pagination links
 
-                // Calculate the range of pages to show
-                const numPagesToShow = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
-                let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
+            // Calculate the range of pages to show
+            const numPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+            let endPage = Math.min(startPage + numPagesToShow - 1, totalPages);
 
-                // Add the "Previous" page if not on the first page
-                if (currentPage > 1) {
-                    $('#pagination').append(`
+            // Add the "Previous" page if not on the first page
+            if (currentPage > 1) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-update" data-page="${1}"><a class="page-link" href="#">&lt;</a></li>
                         `);
-                }
+            }
 
-                // Add pages before the current page
-                for (let i = startPage; i < currentPage; i++) {
-                    $('#pagination').append(`
+            // Add pages before the current page
+            for (let i = startPage; i < currentPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-update" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the current page
-                $('#pagination').append(`
+            // Add the current page
+            $('#pagination').append(`
                             <li class="page-item active"><span class="page-link">${currentPage}</span></li>
                         `);
 
-                // Add pages after the current page
-                for (let i = currentPage + 1; i <= endPage; i++) {
-                    $('#pagination').append(`
+            // Add pages after the current page
+            for (let i = currentPage + 1; i <= endPage; i++) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-update" data-page="${i}"><a class="page-link" href="#">${i}</a></li>
                         `);
-                }
+            }
 
-                // Add the "Next" page if not on the last page
-                if (currentPage < totalPages) {
-                    $('#pagination').append(`
+            // Add the "Next" page if not on the last page
+            if (currentPage < totalPages) {
+                $('#pagination').append(`
                             <li class="page-item page-btn-update" data-page="${totalPages}"><a class="page-link" href="#">&gt;</a></li>
                         `);
-                }
             }
         }
+    }
 
+    $(document).ready(function() {
         getAllTables()
         selectedValue = bindInputChange('input1')
 
-        setInterval(function() {
-            selectedValue = bindInputChange('input1');
-            /*console.log("selectedValue: " + selectedValue);
-            console.log("inputValue: " + inputValue);*/
-            if (inputValue == null || inputValue === '') {
-                getAllTables()
-            } else {
-                getSearchTables(selectedValue)
-            }
-        }, 2000) // 2 seconds
         /*------------------------------------------------------------------------ */
-
 
     })
 </script>

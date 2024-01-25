@@ -202,7 +202,7 @@ class FoodMenuAdminController extends Controller
             session(['errorMenuName' => $errorMenuName]);
         }
 
-        if ($errorImage != null ||$menuName_duplicate_same_id > 0) {
+        if ($errorImage != null || $menuName_duplicate_same_id > 0) {
             return redirect()->route('management.admin.food.menu.edit', ['menu_id' => $menu_id]);
         }
 
@@ -303,6 +303,7 @@ class FoodMenuAdminController extends Controller
     public function getAllFood()
     {
         $category = Route::current()->parameter('category');
+        $inputSearchValue = request('inputSearchValue');
         if ($category == 0) {
             $menu = Menu::select([
                 'menus.menu_id as menu_id',
@@ -317,8 +318,7 @@ class FoodMenuAdminController extends Controller
                     $join->on('menus.menu_id', '=', 'ph.menu_id');
                 })
                 ->orderBy('menu_category_name', 'asc')
-                ->orderBy('menus.menu_id', 'asc')
-                ->get();
+                ->orderBy('menus.menu_id', 'asc');
         } else {
             $menu = Menu::select([
                 'menus.menu_id as menu_id',
@@ -334,54 +334,15 @@ class FoodMenuAdminController extends Controller
                 })
                 ->where('menus.menu_category_id', $category)
                 ->orderBy('menu_category_name', 'asc')
-                ->orderBy('menus.menu_id', 'asc')
-                ->get();
+                ->orderBy('menus.menu_id', 'asc');
         }
-        return response()->json(['allMenu' => $menu]);
-    }
 
-    public function getFoodFromSearch()
-    {
-        $category = Route::current()->parameter('category');
-        $search = Route::current()->parameter('search');
-        if ($category == 0) {
-            $menu = Menu::select([
-                'menus.menu_id as menu_id',
-                'menus.menu_name as menu_name',
-                'menus.menu_image as menu_image',
-                'menus.menu_status as menu_status',
-                'menu_categories.menu_category_name as menu_category_name',
-                'ph.price as price',
-            ])
-                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
-                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
-                    $join->on('menus.menu_id', '=', 'ph.menu_id');
-                })
-                ->where('menus.menu_name', 'LIKE', "%$search%")
-                ->orderBy('menu_category_name', 'asc')
-                ->orderBy('menus.menu_id', 'asc')
-                ->get();
+        if ($inputSearchValue != null) {
+            $menu = $menu->where('menus.menu_name', 'LIKE', "%$inputSearchValue%")->get();
         } else {
-            $menu = Menu::select([
-                'menus.menu_id as menu_id',
-                'menus.menu_name as menu_name',
-                'menus.menu_image as menu_image',
-                'menus.menu_status as menu_status',
-                'menu_categories.menu_category_name as menu_category_name',
-                'ph.price as price',
-            ])
-                ->join('menu_categories', 'menus.menu_category_id', '=', 'menu_categories.menu_category_id')
-                ->join(DB::raw('(SELECT * FROM price_histories WHERE date_end IS NULL) AS ph'), function ($join) {
-                    $join->on('menus.menu_id', '=', 'ph.menu_id');
-                })
-                ->where('menus.menu_name', 'LIKE', "%$search%")
-                ->where('menus.menu_category_id', $category)
-                ->orderBy('menu_category_name', 'asc')
-                ->orderBy('menus.menu_id', 'asc')
-                ->get();
+            $menu = $menu->get();
         }
-
-        return response()->json(['allMenu' => $menu]);
+        return response()->json(['allMenu' => $menu, 'test' => $inputSearchValue]);
     }
 
     public function changeMenuStatus()
@@ -393,5 +354,41 @@ class FoodMenuAdminController extends Controller
             ->update([
                 'menu_status' => $status,
             ]);
+    }
+
+    public function getAllcategory()
+    {
+        $searchValue = request('searchValue');
+        $categoryRaw = DB::table('menu_categories')
+            ->orderBy('menu_category_name', 'asc');
+
+        if ($searchValue) {
+            $category = $categoryRaw->where('menu_category_name', 'LIKE', "%$searchValue%")->get();
+        } else {
+            $category = $categoryRaw->get();
+        }
+
+        return response()->json(['allCategory' => $category]);
+    }
+
+    public function categoryChange()
+    {
+        $newNameCategory = request('newNameCategory');
+        $menuCategoryIdToChange = request('menuCategoryIdToChange');
+        if ($newNameCategory == null) {
+            return response()->json(['sameNameIndatabase' => true,'errorMessage' => 'กรุณากรอกชื่อ']);
+        }
+        $categoryRaw = DB::table('menu_categories')
+            ->where('menu_category_id', '!=', $menuCategoryIdToChange);
+        if (sizeof($categoryRaw->where('menu_category_name', $newNameCategory)->get()) > 0) {
+            return response()->json(['sameNameIndatabase' => true,'errorMessage' => 'ชื่อหมวดหมู่นี้มีอยู่แล้วในระบบ']);
+        } else {
+            DB::table('menu_categories')
+                ->where('menu_category_id', $menuCategoryIdToChange)
+                ->update([
+                    'menu_category_name' => $newNameCategory,
+                ]);
+            return response()->json(['sameNameIndatabase' => false,'errorMessage' => '']);
+        }
     }
 }

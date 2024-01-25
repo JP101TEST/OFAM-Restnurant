@@ -10,7 +10,7 @@ use App\Models\food_order;
 //คำสั่งค้นหา php --ini
 //เมื่อทำเสร็จก็  restar
 //composer require simplesoftwareio/simple-qrcode เพื่อลง libery
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;//เรียกใช้ libery
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\menu;
@@ -95,7 +95,11 @@ class UserController extends Controller
         // Define the text size (font size)
         $textSize = 16;
 
+        // Set the Thai time zone
+        date_default_timezone_set('Asia/Bangkok');
+
         $date = date("d-m-Y H:i:s");
+
         // Define the text lines to add at the bottom
         $textLines = [
             "หมายเลขโต๊ะ: $table_name",
@@ -166,7 +170,7 @@ class UserController extends Controller
         //         window.history.back();
         //     }
         // </script>';
-        return view('management/management_qrcode',['fileName' => $fileName]);
+        return view('management/management_qrcode', ['fileName' => $fileName]);
     }
 
     public function goHomepageWithGetP($table_name, $table_password)
@@ -367,7 +371,7 @@ class UserController extends Controller
                 WHEN fo.food_order_status = 'รอชำระเงิน' THEN 1
                 WHEN fo.food_order_status = 'สั่ง' THEN 2
                 WHEN fo.food_order_status = 'กำลังปรุง' THEN 3
-                WHEN fo.food_order_status = 'เสริฟแล้ว' THEN 4
+                WHEN fo.food_order_status = 'เสิร์ฟแล้ว' THEN 4
                 ELSE 5
             END"))
             ->get();
@@ -407,7 +411,7 @@ class UserController extends Controller
             WHEN fo.food_order_status = 'รอชำระเงิน' THEN 1
             WHEN fo.food_order_status = 'สั่ง' THEN 2
             WHEN fo.food_order_status = 'กำลังปรุง' THEN 3
-            WHEN fo.food_order_status = 'เสริฟแล้ว' THEN 4
+            WHEN fo.food_order_status = 'เสิร์ฟแล้ว' THEN 4
             ELSE 5
         END"))
             ->get();

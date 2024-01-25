@@ -259,7 +259,7 @@ $price_history = DB::table('price_histories')
                     <div class="mb-3">
                         <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/dollar.png') }}" alt="">
                         <label for="formGroupExampleInput" class="form-label">ราคา:</label>
-                        <input type="number" class="form-control " id="formGroupExampleInput2" name="menuPrice" value="{{ $price_history[0]->price }}" min="1" placeholder="กรอกชื่อราคา">
+                        <input type="number" class="form-control " id="formGroupExampleInput2" name="menuPrice" value="{{ $price_history[0]->price }}" min="1" placeholder="กรอกราคา">
                     </div>
                     <div class="mb-3">
                         <img class="icon-size-no-brightness spade-bar" src="{{ asset('images/insert-picture-icon.png') }}" alt="">
